@@ -239,13 +239,16 @@ class GO_Recurly
 			// @TODO: this makes some assumptions about the table prefix that aren't really square, i.e., we can't do that for primary blog id = 1; that would be "wp_capabilities"
 			$capabilities = get_user_meta( $user_id, 'wp_' . $this->config['accounts_blog_id'] . '_capabilities' );
 
-			foreach ( $capabilities as $capability )
+			if ( is_array( $capabilities ) )
 			{
-				if ( isset( $capability['subscriber-lifetime'] ) )
+				foreach ( $capabilities as $capability )
 				{
-					$all_caps['subscriber'] = TRUE;
-				}
-			}//end foreach
+					if ( isset( $capability['subscriber-lifetime'] ) )
+					{
+						$all_caps['subscriber'] = TRUE;
+					}
+				}//end foreach
+			}//end if
 		}//end if
 
 		return $all_caps;
