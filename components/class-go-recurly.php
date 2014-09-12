@@ -841,7 +841,7 @@ class GO_Recurly
 				'company' => (string) $notification->account->company_name,
 			);
 
-			$user_id = $this->create_guest_user( $new_user );
+			$user_id = go_subscriptions()->create_guest_user( $new_user );
 
 			if ( is_wp_error( $user_id ) )
 			{
