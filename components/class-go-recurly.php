@@ -394,7 +394,7 @@ class GO_Recurly
 					),
 				),
 			);
-			
+
 			// set up some of the values that are built from base values
 			foreach ( $this->registered_pages as &$parent )
 			{
@@ -458,7 +458,7 @@ class GO_Recurly
 	/**
 	 * @param int $user_id id of user to cancel the subscription for
 	 * @param mixed $subscription can be 'all', a subscription UUID, or a subscription object
-	 * @param $terminate_refund can be FALSE, "none", "all", or "partial"
+	 * @param $terminate_refund boolean can be FALSE, "none", "all", or "partial"
 	 * @return boolean returns FALSE if all is well, or an error message if there was problem
 	 */
 	public function cancel_subscription( $user_id, $subscription = 'all', $terminate_refund = FALSE )
