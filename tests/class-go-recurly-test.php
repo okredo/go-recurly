@@ -2,10 +2,26 @@
 
 class GO_Recurly_Test extends WP_UnitTestCase
 {
+	// list of user ids to clean up at tearDown time. user_id => bool
+	private $users_to_cleanup = array();
+
 	public function setUp()
 	{
 		// clear WP's object caches
 		$this->flush_cache();
+	}//END setUp
+
+	public function tearDown()
+	{
+		foreach ( $this->users_to_cleanup as $user_id => $unused )
+		{
+			$ret = $this->delete_user( $user_id );
+		}//END foreach
+	}//END tearDown
+
+	public function flush_cache()
+	{
+		parent::flush_cache();
 
 		// clear memcache if enabled
 		$save_handler = ini_get( 'session.save_handler' );
@@ -25,17 +41,17 @@ class GO_Recurly_Test extends WP_UnitTestCase
 
 			$memcache->connect( $save_path[0], $save_path[1] );
 			$memcache->flush();
-		}
+		}//END try
 		catch( Exception $e )
 		{
 			var_dump( $e );
-		}//END catch
+		}
 
 		// override go-subscriptions' configuration. because the way it's
 		// loaded by go-subscriptions, we can't just use our own filter,
 		// but have to set the singleton's config class var
 		go_subscriptions()->config['subscriptions_blog_id'] = 4;
-	}//END setUp
+	}//END flush_cache
 
 	/**
 	 * baseline test just to make sure we can even bring up the singleton
@@ -55,6 +71,7 @@ class GO_Recurly_Test extends WP_UnitTestCase
 										'user_email' => 'pacman_testtest@gigaom.com',
 		) );
 		$this->assertTrue( FALSE !== $user );
+		$this->users_to_cleanup[ $user->ID ] = TRUE;
 
 		$recurly_account_code = go_recurly()->get_or_create_account_code( $user );
 		$this->assertTrue( FALSE !== $recurly_account_code );
@@ -64,6 +81,8 @@ class GO_Recurly_Test extends WP_UnitTestCase
 		$recurly_user = go_recurly()->recurly_get_user( $recurly_notification );
 
 		$this->assertTrue( FALSE !== $recurly_user );
+		$this->users_to_cleanup[ $recurly_user->ID ] = TRUE;
+
 		$this->assertEquals( $recurly_user->user_email, $user->user_email );
 		$this->assertEquals( $recurly_user->user_login, $user->user_login );
 	}//END test_recurly_get_user_with_account_code
@@ -78,6 +97,7 @@ class GO_Recurly_Test extends WP_UnitTestCase
 										'user_email' => 'mspacman_testtest@gigaom.com',
 		) );
 		$this->assertTrue( FALSE !== $user );
+		$this->users_to_cleanup[ $user->ID ] = TRUE;
 
 		$recurly_account_code = go_recurly()->get_or_create_account_code( $user );
 		$this->assertTrue( FALSE !== $recurly_account_code );
@@ -99,6 +119,7 @@ class GO_Recurly_Test extends WP_UnitTestCase
 										'user_email' => 'pacmanjr_testtest@gigaom.com',
 		) );
 		$this->assertTrue( FALSE !== $user );
+		$this->users_to_cleanup[ $user->ID ] = TRUE;
 
 		$recurly_account_code = go_recurly()->get_or_create_account_code( $user );
 		$this->assertTrue( FALSE !== $recurly_account_code );
@@ -108,6 +129,7 @@ class GO_Recurly_Test extends WP_UnitTestCase
 		$recurly_user = go_recurly()->recurly_get_user( $recurly_notification );
 
 		$this->assertTrue( FALSE !== $recurly_user );
+		$this->users_to_cleanup[ $recurly_user->ID ] = TRUE;
 		$this->assertEquals( $recurly_user->user_email, $user->user_email );
 		$this->assertEquals( $recurly_user->user_login, $user->user_login );
 	}//END test_recurly_get_user_with_email
@@ -117,18 +139,31 @@ class GO_Recurly_Test extends WP_UnitTestCase
 	// we should create a new guest user in this case
 	public function test_recurly_get_user_with_new_user()
 	{
-		// start the session here to avoid the headers already sent error
-		// we'll encounter later when a new guest user is created and
-		// logged in (cookies set) by go-user-profile
-		@session_start();
-
 		$user_email = 'the_pacman_testtest@gigaom.com';
 
 		$recurly_notification = $this->get_recurly_notification( '', $user_email );
 
-		$recurly_user = go_recurly()->recurly_get_user( $recurly_notification );
+		try
+		{
+			// we expect this to fail the first time because of a "headers
+			// already sent" error.
+			$recurly_user = go_recurly()->recurly_get_user( $recurly_notification );
+		}
+		catch ( Exception $e )
+		{
+			$this->assertTrue( 0 === strpos( $e->getMessage(), 'Cannot modify header information' ) );
+			try
+			{
+				$recurly_user = go_recurly()->recurly_get_user( $recurly_notification );
+			}
+			catch ( Exception $e )
+			{
+				echo $e->getMessage();
+			}
+		}//END catch
 
 		$this->assertTrue( FALSE !== $recurly_user );
+		$this->users_to_cleanup[ $recurly_user->ID ] = TRUE;
 		$this->assertEquals( $recurly_user->user_email, $user_email );
 		$this->assertTrue( 0 < $recurly_user->ID );
 	}//END test_recurly_get_user_with_new_user
@@ -144,7 +179,6 @@ class GO_Recurly_Test extends WP_UnitTestCase
 
 		$this->assertEquals( FALSE, $recurly_user );
 	}//END test_recurly_get_user_bad_notification
-
 
 	private function create_user( $args )
 	{
@@ -163,6 +197,24 @@ class GO_Recurly_Test extends WP_UnitTestCase
 			return get_user_by( 'id', $user_id );
 		}
 	}//END create_user
+
+	/**
+	 * our own delete_user to work around WP's hesitance to really delete a
+	 * user on a multi-site blog.
+	 */
+	private function delete_user( $user_id )
+	{
+		clean_user_cache( $user_id );
+
+		global $wpdb;
+		$meta = $wpdb->get_col( $wpdb->prepare( "SELECT umeta_id FROM $wpdb->usermeta WHERE user_id = %d", $id ) );
+		foreach ( $meta as $mid )
+		{
+			delete_metadata_by_mid( 'user', $mid );
+		}
+
+		$wpdb->delete( $wpdb->users, array( 'ID' => $user_id ) );
+	}//END delete_user
 
 	/**
 	 * get a recurly notification object for a given account code and
