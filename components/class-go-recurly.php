@@ -6,6 +6,7 @@ class GO_Recurly
 	public $admin = NULL;
 	public $meta_key_prefix = 'go-recurly_';
 	public $version = '1';
+	public $freebies = NULL;
 
 	private $user_profile = NULL;
 	private $recurly_client = NULL;
@@ -52,6 +53,9 @@ class GO_Recurly
 			add_action( 'go_user_profile_email_updated', array( $this, 'go_user_profile_email_updated' ), 10, 2 );
 		}
 
+		// make sure freebies action hooks are live
+		$this->freebies();
+
 		add_filter( 'go_remote_identity_nav', array( $this, 'go_remote_identity_nav' ), 12, 2 );
 		add_filter( 'go_user_profile_screens', array( $this, 'go_user_profile_screens' ) );
 	}//end __construct
@@ -72,6 +76,20 @@ class GO_Recurly
 	}//end init
 
 	/**
+	 * hooked to WordPress init
+	 */
+	public function freebies()
+	{
+		if ( ! $this->freebies  )
+		{
+			require_once __DIR__ . '/class-go-recurly-freebies.php';
+			$this->freebies = new GO_Recurly_Freebies();
+		} // end if
+
+		return $this->freebies;
+	}//end freebies
+
+/**
 	 * Keeping form post handling segregated (or should we just merge this
 	 * into init?)
 	 */
@@ -376,7 +394,7 @@ class GO_Recurly
 					),
 				),
 			);
-			
+
 			// set up some of the values that are built from base values
 			foreach ( $this->registered_pages as &$parent )
 			{
@@ -440,7 +458,7 @@ class GO_Recurly
 	/**
 	 * @param int $user_id id of user to cancel the subscription for
 	 * @param mixed $subscription can be 'all', a subscription UUID, or a subscription object
-	 * @param $terminate_refund can be FALSE, "none", "all", or "partial"
+	 * @param $terminate_refund boolean can be FALSE, "none", "all", or "partial"
 	 * @return boolean returns FALSE if all is well, or an error message if there was problem
 	 */
 	public function cancel_subscription( $user_id, $subscription = 'all', $terminate_refund = FALSE )
@@ -963,6 +981,152 @@ class GO_Recurly
 			return NULL;
 		}
 	}// end coupon_code
+
+	/**
+	 * Retrieve active (redeemable) coupons, and cache a subset of coupon object data here in the main freebies class.
+	 * Hooked to freebies admin subclass's admin_init because we want to message back to the subclass-managed view.
+	 *
+	 * @return array $cached_coupons List of recurly coupon objects, or WP_Error
+	 */
+	public function coupon_codes()
+	{
+		// check cached coupons
+		$cached_coupons = wp_cache_get( 'active-coupons' );
+
+		if ( false === $cached_coupons )
+		{
+			// prepare to use recurly
+			if ( ! $this->recurly_client = go_recurly()->recurly_client() )
+			{
+				return new WP_Error( 'recurly_client_error', 'Error initializing Recurly PHP client.' );
+			}//end if
+
+			try
+			{
+				$coupons = Recurly_CouponList::get( array( 'state' => 'redeemable' ) );
+				foreach ( $coupons as $coupon )
+				{
+					$cached_coupons[] = array(
+						'name' => $coupon->coupon_code,
+						'coupon_code' => $coupon->coupon_code,
+					);
+				}//end foreach
+
+				// set in cache
+				wp_cache_add( 'active-coupons', $cached_coupons );
+			}// end try
+			catch ( Exception $e )
+			{
+				// we don't care which specific Recurly error is being trapped, we just need to report the condition
+				// note: the view will not display the rest of the form if we are in this state
+				return new WP_Error( $e->getMessage() );
+			}// end catch
+		}// end if
+
+		return $cached_coupons;
+	} // end coupon_codes
+
+	/**
+	 * Process a user's subscription for a free period, per rules specified in https://github.com/GigaOM/legacy-pro/issues/3830
+	 *
+	 * @param $user array must contain user object
+	 * @param $free_period configured in the admin dashboard; user cc is dunned at the end of this period
+	 * @param $coupon_code configured in the admin dashboard, from the list of redeemable coupons supplied by recurly
+	 * @return TRUE for a good subscription transaction, WP_Error otherwise
+	 */
+	public function subscribe_free_period( $user, $free_period, $coupon_code )
+	{
+		// 1. check for account code:
+		// If we get an account code back, we next check what type of subscription they have.
+		// If they do have an existing subscription we want to leave it intact.
+		// This is a double-check in case a user has subscribed using another mechanism during the time period since invited by this plugin.
+		$account_code = $this->get_or_create_account_code( $user );
+
+		if ( ! $account_code )
+		{
+			return new WP_Error( 'go_recurly_freebies_subscribe_error', 'no account code found for this user ' . $user->user_email );
+		}//end if
+
+		// prepare to use recurly
+		if ( ! $this->recurly_client() )
+		{
+			return new WP_Error( 'recurly_client_error', 'Error initializing Recurly PHP client.' );
+		}//end if
+
+		try
+		{
+			if ( $subscriptions = Recurly_SubscriptionList::getForAccount( $account_code ) )
+			{
+				return new WP_Error( 'go_recurly_freebies_subscribe_error', 'this user already has a subscription ' . $user->user_email );
+			}//end if
+		}
+		catch ( Recurly_NotFoundError $e )
+		{
+			// note that this is not a return condition - we want to create a subscription for a user in this case
+			//do_action( 'go_slog', 'go-recurly-freebies', 'okay to subscribe user ' . $user->user_email );
+		}
+		catch ( Exception $e )
+		{
+			return new WP_Error( 'go_recurly_freebies_subscribe_error', get_class( $e ) . ': ' . $e->getMessage() );
+		}
+
+		// 2. we have an account code and no subscription exists, safe to create subscription
+		$subscription = new Recurly_Subscription();
+		$subscription->plan_code = 'annual';
+		$subscription->currency = 'USD';
+		$subscription->collection_method = 'manual';
+		$subscription->net_terms = 0;
+
+		// from admin form
+		$subscription->trial_ends_at = date( 'Y-m-d H:i:s', strtotime( 'today + ' . $free_period ) );
+		$subscription->coupon_code = $coupon_code;
+
+		// create account
+		$account = new Recurly_Account();
+		$account->account_code = $account_code;
+		$account->email = $user->user_email;
+
+		// associate subscription with account
+		$subscription->account = $account;
+
+		try
+		{
+			// create the new account
+			$subscription->create();
+
+			// change the subscription collection method
+			$subscription->collection_method = 'automatic';
+			$subscription->updateAtRenewal(); // Update when the subscription renews, i.e., apply this change to the subscription at renewal time
+		}
+		catch ( Recurly_NotFoundError $e )
+		{
+			return new WP_Error( 'go_recurly_freebies_subscribe_error', 'record could not be found ' . $user->user_email );
+		}
+		catch ( Recurly_ValidationError $e )
+		{
+			// If there are multiple errors, they are comma delimited:
+			$messages = explode( ',', $e->getMessage() );
+			return new WP_Error( 'go_recurly_freebies_subscribe_error', 'recurly validation problems when attempting to subscribe user ' . $user->user_email . ' ' . implode( '\n', $messages ) );
+		}
+		catch ( Recurly_ServerError $e )
+		{
+			return new WP_Error( 'go_recurly_freebies_subscribe_error', 'problem communicating with recurly ' . $user->user_email );
+		}
+		catch ( Exception $e )
+		{
+			return new WP_Error( 'go_recurly_freebies_subscribe_error', get_class( $e ) . ': ' . $e->getMessage() . ' when attempting to subscribe user ' . $user->user_email );
+		}
+
+		// synchronize recurly data into usermeta
+		$ret = $this->admin()->recurly_sync( $user );
+
+		if ( ! $ret || is_wp_error( $ret ) )
+		{
+			return new WP_Error( 'go_recurly_freebies_subscribe_recurly_sync_error', 'failed to sync new user recurly account code to recurly when attempting to subscribe user ' . $user->user_email );
+		}
+
+		return TRUE;
+	} // END subscribe_free_period
 
 	/**
 	 * respond to step 2 signup form post response from recurly
