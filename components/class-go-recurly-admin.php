@@ -3,7 +3,6 @@
 class GO_Recurly_Admin
 {
 	private $core = NULL;
-	private $freebies = NULL;
 
 	/**
 	 * Constructor
@@ -26,10 +25,10 @@ class GO_Recurly_Admin
 			add_action( 'wp_ajax_go_recurly_push', array( $this, 'receive_push' ) );
 			add_action( 'wp_ajax_nopriv_go_recurly_push', array( $this, 'receive_push' ) );
 
-			if ( ! $this->freebies  )
+			if ( ! $this->core->freebies  )
 			{
 				require_once __DIR__ . '/class-go-recurly-freebies.php';
-				$this->freebies = new GO_Recurly_Freebies();
+				$this->core->freebies = new GO_Recurly_Freebies();
 			} // end if
 		}//end if
 	}//end __construct

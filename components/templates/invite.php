@@ -1,5 +1,5 @@
 <?php
-$coupons = go_recurly_freebies()->coupon_codes();
+$coupons = go_recurly()->coupon_codes();
 if ( ! is_wp_error( $coupons ) )
 {
 	$coupon_names = wp_list_pluck( $coupons, 'name' );
@@ -39,7 +39,7 @@ else
 				<label class="instruction-plan-codes">Associate invited users with coupon:</label>
 				<select name="go_recurly_freebies_coupon_code" class="select" id="go_recurly_freebies_coupon_code">
 					<?php
-					echo go_recurly_freebies()->admin()->build_options(
+					echo go_recurly()->freebies()->admin()->build_options(
 						$coupon_names,
 						'select one'
 					);
@@ -50,15 +50,15 @@ else
 				<label class="instruction-plan-codes">Free trial period:</label>
 				<select name="go_recurly_freebies_free_period" class="select" id="go_recurly_freebies_free_period">
 					<?php
-					echo go_recurly_freebies()->admin()->build_options(
-						go_recurly_freebies()->config( 'free_period' ),
-						go_recurly_freebies()->admin()->free_period
+					echo go_recurly()->freebies()->admin()->build_options(
+						go_recurly()->freebies()->admin()->config( 'free_period' ),
+						go_recurly()->freebies()->admin()->free_period
 					);
 					?>
 				</select>
 			</section>
 			<section>
-				<label class="instruction-plan-codes">Subscription Plan: <?php echo esc_html( go_recurly_freebies()->config( 'subscription_plan' ) ) ?></label>
+				<label class="instruction-plan-codes">Subscription Plan: <?php echo esc_html( go_recurly()->freebies()->config( 'subscription_plan' ) ) ?></label>
 			</section>
 			<section class="invitations-area">
 				<label class="instruction-initial show-on-reset">Enter email addresses:</label>
@@ -79,7 +79,7 @@ else
 				<button class="invite-users primary button show-on-reset">Invite users</button>
 				<button class="invite-users-more primary button hide-on-reset">Invite more users</button>
 				<button class="invite-users-try-again primary button hide-on-reset">Try again</button>
-				<?php go_recurly_freebies()->admin()->nonce_field(); ?>
+				<?php go_recurly()->freebies()->admin()->nonce_field(); ?>
 			</section>
 		</div>
 	</section>
