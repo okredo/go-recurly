@@ -756,7 +756,7 @@ class GO_Recurly
 
 		if ( ! $this->recurly_client )
 		{
-			require_once( __DIR__ . '/external/recurly-client/lib/recurly.php' );
+			require_once( __DIR__ . '/external/recurly-client-php/lib/recurly.php' );
 
 			// Required for the API
 			Recurly_Client::$apiKey = $this->config['recurly_api_key'];
