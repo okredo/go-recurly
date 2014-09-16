@@ -259,7 +259,7 @@ class GO_Recurly_Test extends WP_UnitTestCase
   </subscription>
 </updated_subscription_notification>';
 
-		require_once( dirname( __DIR__ ) . '/components/external/recurly-client/lib/recurly.php' );
+		require_once( dirname( __DIR__ ) . '/components/external/recurly-client-php/lib/recurly.php' );
 
 		return new Recurly_PushNotification( $xml );
 	}//END get_recurly_notification

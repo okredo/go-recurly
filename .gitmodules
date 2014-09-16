@@ -1,0 +1,3 @@
+[submodule "components/external/recurly-client-php"]
+	path = components/external/recurly-client-php
+	url = git@github.com:recurly/recurly-client-php.git
