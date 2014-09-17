@@ -19,12 +19,9 @@ class GO_Recurly_Admin
 
 		add_action( 'profile_update', array( $this, 'profile_update' ), 10, 2 );
 
-		if ( is_admin() )
-		{
-			// let's hook up some ajax actions
-			add_action( 'wp_ajax_go_recurly_push', array( $this, 'receive_push' ) );
-			add_action( 'wp_ajax_nopriv_go_recurly_push', array( $this, 'receive_push' ) );
-		}//end if
+		// let's hook up some ajax actions
+		add_action( 'wp_ajax_go_recurly_push', array( $this, 'receive_push' ) );
+		add_action( 'wp_ajax_nopriv_go_recurly_push', array( $this, 'receive_push' ) );
 	}//end __construct
 
 	/**
@@ -33,7 +30,6 @@ class GO_Recurly_Admin
 	public function admin_init()
 	{
 		wp_register_style( 'go-recurly-admin', plugins_url( 'css/go-recurly-admin.css', __FILE__ ), array(), $this->core->version );
-		wp_enqueue_style( 'go-recurly-admin' );
 
 		$this->handle_request();
 	}//end admin_init
@@ -46,7 +42,7 @@ class GO_Recurly_Admin
 		add_users_page(
 			'Search by Recurly Account Code',
 			'Search by Recurly Account Code',
-			' edit_users',
+			'edit_users',
 			'go-recurly-search-by-account-code',
 			array( $this, 'add_users_page' )
 		);
@@ -79,7 +75,7 @@ class GO_Recurly_Admin
 			$_SERVER['PHP_AUTH_PW'] != $this->core->config['push_password']
 		)
 		{
-			header( 'WWW-Authenticate: Basic realm="Gigaom"' );
+			header( 'WWW-Authenticate: Basic realm="go-recurly"' );
 			header( 'HTTP/1.0 401 Unauthorized', true, 401 );
 			exit( 'Bad authentication response' );
 		}//end if
@@ -156,9 +152,12 @@ class GO_Recurly_Admin
 		<h3>Subscription Info</h3>
 		<a class="button" href="<?php echo admin_url(); ?>user-edit.php?user_id=<?php echo absint( $user->ID ); ?>&action=recurly_sync">Synchronize Recurly Data</a><?php
 		if ( isset( $this->recurly_error ) )
-		{ ?>
-		  <p><span class="recurly-error"><?php echo wp_kses( $this->recurly_error->getMessage() ); ?></span></p>
-		<?php
+		{
+			// we need the css for recurly-error class
+			wp_enqueue_style( 'go-recurly-admin' );
+			?>
+			<p><span class="recurly-error"><?php echo wp_kses( $this->recurly_error->getMessage(), array() ); ?></span></p>
+			<?php
 		}//END if
 		?>
 		<table class="form-table">
@@ -203,19 +202,14 @@ class GO_Recurly_Admin
 		}//end if
 
 		//change account_code to a recurly link
-		//escaping $value here so that we don't have to below (and break the <a>)
 		if ( 'account_code' == $key )
 		{
 			$value = $this->get_recurly_user_url( $value );
 		}
-		else
-		{
-			$value = esc_attr( $value );
-		}
 	 	?>
 	 	<tr class="form-field">
-			<th><?php _e( $key ); ?></th>
-			<td><code><?php echo $value; ?></code></td>
+			<th><?php echo esc_html( $key ); ?></th>
+			<td><code><?php echo ( 'account_code' == $key ? wp_kses( $value ) : esc_html( $value ) ); ?></code></td>
 		</tr>
 		<?php
 	}//end show_user_profile_row
@@ -287,7 +281,8 @@ class GO_Recurly_Admin
 
 		$user_id = $user->ID;
 
-		$old_meta = get_user_meta( $user_id, $this->core->meta_key_prefix . 'subscription', TRUE );
+		$user_meta = $this->core->get_user_meta( $user_id );
+		$subscription_meta = $user_meta['subscription'];
 
 		// let's start a new meta array
 		$meta = array();
@@ -295,7 +290,7 @@ class GO_Recurly_Admin
 		// if we don't have the user's recurly first/last name set yet,
 		// then make sure we have a recurly account object so we can
 		// save the first/last name in our db
-		if ( ! $account && ( ! isset( $old_meta['first_name'] ) || ! isset( $old_meta['last_name'] ) ) )
+		if ( ! $account && ( ! isset( $subscription_meta['first_name'] ) || ! isset( $subscription_meta['last_name'] ) ) )
 		{
 			$account = $this->core->recurly_get_account( $user->ID );
 
@@ -308,13 +303,13 @@ class GO_Recurly_Admin
 		else
 		{
 			// we already have their recurly first/last name
-			if ( isset( $old_meta['first_name'] ) )
+			if ( isset( $subscription_meta['first_name'] ) )
 			{
-				$meta['first_name'] = $old_meta['first_name'];
+				$meta['first_name'] = $subscription_meta['first_name'];
 			}
-			if ( isset( $old_meta['last_name'] ) )
+			if ( isset( $subscription_meta['last_name'] ) )
 			{
-				$meta['last_name'] = $old_meta['last_name'];
+				$meta['last_name'] = $subscription_meta['last_name'];
 			}
 		}//end else
 
@@ -390,11 +385,12 @@ class GO_Recurly_Admin
 		}//end foreach
 
 		// the user doesn't have any subscriptions? set some info to defaults and bail.
+
 		if ( empty( $subscriptions ) )
 		{
 			go_user_profile()->set_role( $user, 'guest' );
 
-			go_subscriptions()->update_subscription_meta( $user_id, $meta );
+			$this->core->update_subscription_meta( $user_id, $meta );
 
 			return FALSE;
 		}//end if
@@ -424,12 +420,12 @@ class GO_Recurly_Admin
 			{
 				$meta['sub_did_subscription'] = TRUE;
 				$meta['sub_last_payment'] = (int) $transaction->amount_in_cents;
-				$meta['sub_last_payment_date'] = (string) $transaction->created_at->format( 'Y-m-d\TH:i:s\Z' );
+				$meta['sub_last_payment_date'] = $transaction->created_at->format( 'Y-m-d\TH:i:s\Z' );
 				$meta['sub_last_payment_invnum'] = (int) $transaction->reference;
 
-				if ( isset( $old_meta['sub_initial_payment'] ) )
+				if ( isset( $subscription_meta['sub_initial_payment'] ) )
 				{
-					$meta['sub_initial_payment'] = $old_meta['sub_initial_payment'];
+					$meta['sub_initial_payment'] = $subscription_meta['sub_initial_payment'];
 				}
 				else
 				{
@@ -439,8 +435,7 @@ class GO_Recurly_Admin
 		}//end if
 
 		// set a created date if one has never been set. ever.
-		$created_date = get_user_meta( $user_id, $this->core->meta_key_prefix . 'created_date', TRUE );
-		if ( ! $created_date )
+		if ( empty( $user_meta['created_date'] ) )
 		{
 			update_user_meta( $user_id, $this->core->meta_key_prefix . 'created_date', strtotime( $meta['sub_activated_at'] ) );
 		}
@@ -466,7 +461,7 @@ class GO_Recurly_Admin
 			go_user_profile()->set_role( $user, 'guest' );
 		}
 
-		go_subscriptions()->update_subscription_meta( $user_id, $meta );
+		$this->core->update_subscription_meta( $user_id, $meta );
 
 		$this->core->update_email( $user );
 
@@ -500,7 +495,7 @@ class GO_Recurly_Admin
 				?>
 				<script type="text/javascript">
 					<!--
-					window.location = <?php echo '"' . get_edit_user_link( $user->ID ) . '"'; ?>;
+						window.location = <?php echo json_encode( get_edit_user_link( $user->ID ) ); ?>;
 					//-->
 				</script>
 				<?php

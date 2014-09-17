@@ -5,7 +5,7 @@ if ( apply_filters( 'go_site_locked', FALSE ) )
 	return;
 }//end if
 ?>
-<div id="go-subscriptions-payment" class="clearfix">
+<div id="go-recurly-payment" class="clearfix">
 	<div
 		id="go-recurly-form"
 		data-signature="<?php echo esc_attr( $template_variables['signature'] ); ?>"

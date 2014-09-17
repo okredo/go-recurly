@@ -38,7 +38,7 @@ else
 	if ( isset( $template_variables['subscription']->uuid ) )
 	{
 		?>
-		<input type="hidden" name="uuid" value="<?php echo $template_variables['subscription']->uuid; ?>"/>
+		<input type="hidden" name="uuid" value="<?php echo esc_attr( $template_variables['subscription']->uuid ); ?>"/>
 		<?php
 	}// end if
 	?>

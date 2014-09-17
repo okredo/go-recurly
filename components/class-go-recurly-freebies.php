@@ -2,46 +2,25 @@
 
 class GO_Recurly_Freebies
 {
-	public $version = '1';
 	public $id_base = 'go-recurly-freebies';
 	public $signin_url = '/subscription/thanks/';
 
-	private $signup_action = 'go_recurly_freebies_signup';
-	private $config;
+	private $core = NULL;
 	private $admin = NULL;
 
-	public function __construct()
+	/**
+	 * @param GO_Recurly $core the containing GO_Recurly singleton
+	 */
+	public function __construct( $core )
 	{
+		$this->core = $core;
+
 		//instantiate subclass to handle admin functionality
 		if ( is_admin() )
 		{
 			$this->admin();
 		} // end if
-
-		// the hook that wp-tix will use when the email link is clicked
-		add_action( $this->signup_action, array( $this, 'signup' ), 10, 2 );
 	} // end __construct
-
-	/**
-	 * get the config values or value
-	 *
-	 * @param string $key if set then return the config value for this key
-	 * @return mixed the named config value or all the config values
-	 */
-	public function config( $key = NULL )
-	{
-		if ( ! $this->config )
-		{
-			$this->config = apply_filters( 'go_config', $this->config, 'go-recurly-freebies' );
-		}
-
-		if ( ! empty( $key ) )
-		{
-			return isset( $this->config[ $key ] ) ? $this->config[ $key ] : NULL;
-		}
-
-		return $this->config;
-	}//end config
 
 	/**
 	 * retrieves an admin singleton
@@ -56,38 +35,6 @@ class GO_Recurly_Freebies
 
 		return $this->admin;
 	}//end admin
-
-	/**
-	 * invites a user to the free subscription
-	 *
-	 * @param string $email email to invite
-	 * @param array $subscription_data data about the subscription, from the invitation form and/or config, e.g., coupon code.
-	 * @return boolean TRUE if no errors sending the email (doesn't mean user received it) | FALSE otherwise
-	 */
-	protected function invite( $email, $subscription_data )
-	{
-		$subscription_data['email'] = $email;// add email field to the free period and coupon code info, to be persisted in WPTix
-		$ticket_name = wptix()->generate_md5();
-		wptix()->register_ticket( $this->signup_action, $ticket_name, $subscription_data );
-
-		$url = home_url( "/do/$ticket_name/" );
-		$data = array(
-			'URL' => $url,
-			'STYLESHEET_URL' => preg_replace( '/^https:/', 'http:', get_stylesheet_directory_uri() ),
-			'DATE_YEAR' => date( 'Y' ),
-		);
-		$email_template = 'alerts-beta';
-
-		$headers = array();
-		$headers[] = 'Content-Type: text/html';
-		$headers[] = 'From: research@gigaom.com';
-		$headers[] = 'X-MC-Template: ' . $email_template;
-		$headers[] = 'X-MC-MergeVars: ' . json_encode( $data );
-
-		$message = '<placeholder>';// this will be replaced by mandrill template
-		$subject = 'Gigaom Research Invitation';
-		return wp_mail( $email, $subject, $message, $headers );
-	}//end invite
 
 	/**
 	 * signup action; handles user click-through; allows a user to sign up for a subscription

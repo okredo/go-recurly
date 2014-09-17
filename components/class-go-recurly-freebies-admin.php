@@ -1,13 +1,15 @@
 <?php
 
-class GO_Recurly_Freebies_Admin extends GO_Recurly_Freebies
+class GO_Recurly_Freebies_Admin
 {
 	public $core = NULL;
 	public $free_period = '2 weeks'; // default free period to be offered
 
 	/**
 	 * Constructor
-	 * @param $core - an object to act as a delegate handle to the parent class
+	 * @param $core - an object to act as a delegate handle to the containing
+	 *  class. in our case we expect it to be an instance of
+	 *  GO_Recurly_Freebies
 	 */
 	public function __construct( $core )
 	{
@@ -43,10 +45,9 @@ class GO_Recurly_Freebies_Admin extends GO_Recurly_Freebies
 			'go-recurly-freebies-admin',
 			'go_recurly_freebies_admin',
 			array(
-				'admin_ajax' => site_url( '/wp-admin/admin-ajax.php' ),
+				'admin_ajax' => admin_url( 'admin-ajax.php' ),
 			)
 		);
-
 	}//end register_scripts_and_styles
 
 	/**
@@ -117,7 +118,7 @@ class GO_Recurly_Freebies_Admin extends GO_Recurly_Freebies
 				}//end if
 
 				// invite user
-				if ( $this->invite( $email, $subscription_data ) )
+ 				if ( $this->invite( $email, $subscription_data ) )
 				{
 					$users_invited[] = $email;
 					//do_action( 'go_slog', 'go-recurly-freebies', 'invited a freebie user', $email );
@@ -131,9 +132,40 @@ class GO_Recurly_Freebies_Admin extends GO_Recurly_Freebies
 
 		$result = array( 'invited' => $users_invited, 'skipped' => $skipped, 'invalid' => $invalid );
 
-		echo json_encode( $result );
+		wp_send_json_success( $result );
 		wp_die();
 	}// end batch_invite
+
+	/**
+	 * invites a user to the free subscription
+	 *
+	 * @param string $email email to invite
+	 * @param array $subscription_data data about the subscription, from the invitation form and/or config, e.g., coupon code.
+	 * @return boolean TRUE if no errors sending the email (doesn't mean user received it) | FALSE otherwise
+	 */
+	public function invite( $email, $subscription_data )
+	{
+		$subscription_data['email'] = $email;// add email field to the free period and coupon code info, to be persisted in WPTix
+		$ticket_name = wptix()->generate_md5();
+		wptix()->register_ticket( go_recurly()->signup_action, $ticket_name, $subscription_data );
+		$url = home_url( "/do/$ticket_name/" );
+		$data = array(
+			'URL' => $url,
+			'STYLESHEET_URL' => preg_replace( '/^https:/', 'http:', get_stylesheet_directory_uri() ),
+			'DATE_YEAR' => date( 'Y' ),
+		);
+		$email_template = 'alerts-beta';
+
+		$headers = array();
+		$headers[] = 'Content-Type: text/html';
+		$headers[] = 'From: research@gigaom.com';
+		$headers[] = 'X-MC-Template: ' . $email_template;
+		$headers[] = 'X-MC-MergeVars: ' . json_encode( $data );
+
+		$message = '<placeholder>';// this will be replaced by mandrill template
+		$subject = 'Gigaom Research Invitation';
+		return wp_mail( $email, $subject, $message, $headers );
+	}//end invite
 
 	/**
 	 * display form for managing free subscriptions
@@ -167,7 +199,7 @@ class GO_Recurly_Freebies_Admin extends GO_Recurly_Freebies
 	 */
 	public function nonce_field()
 	{
-		wp_nonce_field( plugin_basename( __FILE__ ), $this->id_base .'-nonce' );
+		wp_nonce_field( plugin_basename( __FILE__ ), $this->core->id_base .'-nonce' );
 	}//end nonce_field
 
 	/**
@@ -175,11 +207,11 @@ class GO_Recurly_Freebies_Admin extends GO_Recurly_Freebies
 	 */
 	public function verify_nonce()
 	{
-		if ( ! isset( $_REQUEST[ $this->id_base .'-nonce' ] ) )
+		if ( ! isset( $_REQUEST[ $this->core->id_base .'-nonce' ] ) )
 		{
 			return FALSE;
 		}// end if
 
-		return wp_verify_nonce( $_REQUEST[ $this->id_base .'-nonce' ], plugin_basename( __FILE__ ) );
+		return wp_verify_nonce( $_REQUEST[ $this->core->id_base .'-nonce' ], plugin_basename( __FILE__ ) );
 	}//end verify_nonce
 }//end class

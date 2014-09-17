@@ -1,4 +1,4 @@
-<div class="go-subscriptions go-subscriptions-history">
+<div class="go-recurly go-recurly-history">
 	<?php
 	if ( ! is_object( $template_variables['invoices'] ) )
 	{

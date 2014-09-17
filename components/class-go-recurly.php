@@ -7,6 +7,7 @@ class GO_Recurly
 	public $meta_key_prefix = 'go-recurly_';
 	public $version = '1';
 	public $freebies = NULL;
+	public $signup_action = 'go_recurly_freebies_signup';
 
 	private $user_profile = NULL;
 	private $recurly_client = NULL;
@@ -26,20 +27,30 @@ class GO_Recurly
 			return;
 		}
 
-		// add our user cap at priority 11, after go-subscription's
+		// filter this to set recurly subscription-related user caps
 		add_filter( 'user_has_cap', array( $this, 'user_has_cap' ), 10, 3 );
 
-		if ( ! is_admin() )
+		if ( is_admin() )
+		{
+			// instantiate freebies to get the freebies admin menu
+			$this->freebies();
+		}
+		else
 		{
 			add_shortcode( 'go_recurly_subscription_form', array( $this, 'subscription_form' ) );
 
 			add_action( 'init', array( $this, 'init' ) );
 
+			// the hook that wp-tix will use when the freebies invite email
+			// link is clicked
+			add_action( $this->signup_action, array( $this, 'signup_action' ), 10, 2 );
+
+			// @TODO: handle coupon detection in JS
 			$this->detect_coupon();
 		}//end if
 
-		// on any other blog, we do not want/need the rest of this plugin's functionality
-		if ( 'pro' != go_config()->get_property_slug() && 'accounts' != go_config()->get_property_slug() )
+		// we don't need the rest of the constructor if we're not on Accounts
+		if ( $this->config['accounts_blog_id'] != get_current_blog_id() )
 		{
 			return;
 		}
@@ -52,9 +63,6 @@ class GO_Recurly
 		{
 			add_action( 'go_user_profile_email_updated', array( $this, 'go_user_profile_email_updated' ), 10, 2 );
 		}
-
-		// make sure freebies action hooks are live
-		$this->freebies();
 
 		add_filter( 'go_remote_identity_nav', array( $this, 'go_remote_identity_nav' ), 12, 2 );
 		add_filter( 'go_user_profile_screens', array( $this, 'go_user_profile_screens' ) );
@@ -76,6 +84,20 @@ class GO_Recurly
 	}//end init
 
 	/**
+	 * signup action; handles user click-through; allows a user to sign up
+	 * for a subscription
+	 *
+	 * @param $args array must contain email address of the invited user
+	 * @param $ticket array containing the subscription data we need to
+	 *  persist until the user clicks through the invitation email
+	 */
+	public function signup_action( $args, $ticket )
+	{
+golog( 'yo!' );
+		$this->freebies()->signup( $args, $ticket );
+	}//end signup_action
+
+	/**
 	 * hooked to WordPress init
 	 */
 	public function freebies()
@@ -83,7 +105,7 @@ class GO_Recurly
 		if ( ! $this->freebies  )
 		{
 			require_once __DIR__ . '/class-go-recurly-freebies.php';
-			$this->freebies = new GO_Recurly_Freebies();
+			$this->freebies = new GO_Recurly_Freebies( $this );
 		} // end if
 
 		return $this->freebies;
@@ -136,42 +158,24 @@ class GO_Recurly
 			TRUE
 		);
 
-		wp_register_script(
-			'go-recurly-behavior',
-			plugins_url( 'js/go-recurly-behavior.js', __FILE__ ),
-			array( 'go-recurly' ),
-			$script_config['version'],
-			TRUE
-		);
-
 		wp_register_style( 'go-recurly', plugins_url( 'css/go-recurly.css', __FILE__ ), array(), $script_config['version'] );
 		wp_register_style( 'recurly-css', plugins_url( 'js/external/recurly-js/themes/default/recurly.css', __FILE__ ), array(), $script_config['version'] );
 
-		wp_enqueue_script( 'recurly-js' );
-		wp_enqueue_script( 'go-recurly-config' );
+		// this will pull in recurly-js and go-recurly-config
+		// because of go-recurly's dependencies list
+		// @TODO: only enqueue when we need them
 		wp_enqueue_script( 'go-recurly' );
-		wp_enqueue_script( 'go-recurly-behavior' );
 
 		wp_enqueue_style( 'recurly-css' );
 		wp_enqueue_style( 'go-recurly' );
 
-		// check if we have an email-less user, which can exist if the user
-		// logged in with a social network account
-		$user_has_email = 0;
-		$user = go_subscriptions()->get_user();
-		if ( $user && isset( $user['email'] ) && ! empty( $user['email'] ) )
-		{
-			$user_has_email = 1;
-		}
 		wp_localize_script(
 			'go-recurly-config',
 			'go_recurly_settings',
 			array(
 				'subdomain' => $this->config['recurly_subdomain'],
-				'user_has_email' => $user_has_email,
 			)
 		);
-		wp_localize_script( 'go-recurly-behavior', 'go_recurly_ajax', array( 'url' => site_url( '/wp-admin/admin-ajax.php' ) ) );
 	}//end wp_enqueue_scripts
 
 	/**
@@ -202,7 +206,7 @@ class GO_Recurly
 	{
 		list( $cap, $user_id ) = $args;
 
-		$subscription = go_subscriptions()->get_subscription_meta( $user_id );
+		$subscription = $this->get_subscription_meta( $user_id );
 
 		// did_trial indicates that the user had a trial account at one time (not necessarily still in their trial)
 		if ( isset( $subscription['sub_trial_started_at'] ) )
@@ -240,7 +244,6 @@ class GO_Recurly
 		}
 
 		// login_with_key is for go-softlogins
-		// @todo: should this include 'guest' as well?
 		if ( empty( $all_caps['has_subscription_data'] ) )
 		{
 			if ( ! empty( $all_caps['guest-prospect'] ) || ! empty( $all_caps['guest'] ) )
@@ -667,7 +670,7 @@ class GO_Recurly
 	public function get_template_part( $template_name, $template_variables = array() )
 	{
 		ob_start();
-		include( __DIR__ . '/templates/' . $template_name );
+		include __DIR__ . '/templates/' . $template_name;
 		return ob_get_clean();
 	}//end get_template_part
 
@@ -698,6 +701,22 @@ class GO_Recurly
 	}//end get_user_by_account_code
 
 	/**
+	 * helper function for getting prefixed subscription meta
+	 */
+	public function get_subscription_meta( $user_id )
+	{
+		return get_user_meta( $user_id, $this->meta_key_prefix . 'subscription', TRUE );
+	}//end get_subscription_meta
+
+	/**
+	 * helper function for updating prefixed subscription meta
+	 */
+	public function update_subscription_meta( $user_id, $meta )
+	{
+		return update_user_meta( $user_id, $this->meta_key_prefix . 'subscription', $meta );
+	}//end update_subscription_meta
+
+	/**
 	 * return all the meta that is set by this plugin in an array
 	 * @param int $user_id WordPress user id
 	 * @return array of meta values
@@ -714,8 +733,8 @@ class GO_Recurly
 		$meta_vals['title'] = isset( $profile_data['title'] ) ? $profile_data['title'] : '';
 
 		$meta_vals['account_code'] = $this->get_account_code( $user_id );
-		$meta_vals['subscription'] = go_subscriptions()->get_subscription_meta( $user_id );
-
+		$meta_vals['subscription'] = $this->get_subscription_meta( $user_id );
+		$meta_vals['created_date'] = get_user_meta( $user_id, $this->meta_key_prefix . 'created_date', TRUE );
 		$meta_vals['converted_meta'] = go_subscriptions()->get_converted_meta( $user_id );
 
 		return $meta_vals;
@@ -726,7 +745,7 @@ class GO_Recurly
 	 */
 	public function get_or_create_account_code( $user )
 	{
-		if ( ! ( $user instanceof WP_User ) || $user->ID == 0 )
+		if ( ! ( $user instanceof WP_User ) || 0 == $user->ID )
 		{
 			return FALSE;
 		}
@@ -756,7 +775,7 @@ class GO_Recurly
 
 		if ( ! $this->recurly_client )
 		{
-			require_once( __DIR__ . '/external/recurly-client-php/lib/recurly.php' );
+			require_once __DIR__ . '/external/recurly-client-php/lib/recurly.php';
 
 			// Required for the API
 			Recurly_Client::$apiKey = $this->config['recurly_api_key'];
@@ -819,10 +838,7 @@ class GO_Recurly
 	 */
 	public function recurly_get_user( $notification )
 	{
-		if (
-			isset( $notification->account->account_code ) &&
-			! empty( $notification->account->account_code )
-		)
+		if ( ! empty( $notification->account->account_code ) )
 		{
 			// $notification->account and its children are SimpleXMLElement
 			// objects, which must be casted to string to get to their
@@ -835,10 +851,7 @@ class GO_Recurly
 			}
 			apply_filters( 'go_slog', 'go-recurly', 'failed to find a user with recurly account code: ' . $account_code, $notification );
 		}//END if
-		elseif (
-			isset( $notification->account->email ) &&
-			! empty( $notification->account->email )
-		)
+		elseif ( ! empty( $notification->account->email ) )
 		{
 			$email = (string) $notification->account->email;
 
@@ -1063,7 +1076,6 @@ class GO_Recurly
 		catch ( Recurly_NotFoundError $e )
 		{
 			// note that this is not a return condition - we want to create a subscription for a user in this case
-			//do_action( 'go_slog', 'go-recurly-freebies', 'okay to subscribe user ' . $user->user_email );
 		}
 		catch ( Exception $e )
 		{

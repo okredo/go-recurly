@@ -131,7 +131,7 @@ class GO_Recurly_User_Profile
 			return;
 		}//end if
 
-		$subscription_meta = go_subscriptions()->get_subscription_meta( get_current_user_id() );
+		$subscription_meta = $this->core->get_subscription_meta( get_current_user_id() );
 
 		$args = array(
 			'account_code'      => $account->account_code,
