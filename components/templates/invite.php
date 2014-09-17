@@ -51,14 +51,14 @@ else
 				<select name="go_recurly_freebies_free_period" class="select" id="go_recurly_freebies_free_period">
 					<?php
 					echo go_recurly()->freebies()->admin()->build_options(
-						go_recurly()->freebies()->config( 'free_period' ),
+						go_recurly()->config['free_period'],
 						go_recurly()->freebies()->admin()->free_period
 					);
 					?>
 				</select>
 			</section>
 			<section>
-				<label class="instruction-plan-codes">Subscription Plan: <?php echo esc_html( go_recurly()->freebies()->config( 'subscription_plan' ) ) ?></label>
+				<label class="instruction-plan-codes">Subscription Plan: <?php echo esc_html( go_recurly()->config['subscription_plan'] ) ?></label>
 			</section>
 			<section class="invitations-area">
 				<label class="instruction-initial show-on-reset">Enter email addresses:</label>

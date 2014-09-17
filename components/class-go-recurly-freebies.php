@@ -5,42 +5,22 @@ class GO_Recurly_Freebies
 	public $id_base = 'go-recurly-freebies';
 	public $signin_url = '/subscription/thanks/';
 
-	private $signup_action = 'go_recurly_freebies_signup';
-	private $config;
+	private $core = NULL;
 	private $admin = NULL;
 
-	public function __construct()
+	/**
+	 * @param GO_Recurly $core the containing GO_Recurly singleton
+	 */
+	public function __construct( $core )
 	{
+		$this->core = $core;
+
 		//instantiate subclass to handle admin functionality
 		if ( is_admin() )
 		{
 			$this->admin();
 		} // end if
-
-		// the hook that wp-tix will use when the email link is clicked
-		add_action( $this->signup_action, array( $this, 'signup' ), 10, 2 );
 	} // end __construct
-
-	/**
-	 * get the config values or value
-	 *
-	 * @param string $key if set then return the config value for this key
-	 * @return mixed the named config value or all the config values
-	 */
-	public function config( $key = NULL )
-	{
-		if ( ! $this->config )
-		{
-			$this->config = apply_filters( 'go_config', $this->config, 'go-recurly-freebies' );
-		}
-
-		if ( ! empty( $key ) )
-		{
-			return isset( $this->config[ $key ] ) ? $this->config[ $key ] : NULL;
-		}
-
-		return $this->config;
-	}//end config
 
 	/**
 	 * retrieves an admin singleton
@@ -67,8 +47,7 @@ class GO_Recurly_Freebies
 	{
 		$subscription_data['email'] = $email;// add email field to the free period and coupon code info, to be persisted in WPTix
 		$ticket_name = wptix()->generate_md5();
-		wptix()->register_ticket( $this->signup_action, $ticket_name, $subscription_data );
-
+		wptix()->register_ticket( $this->core->signup_action, $ticket_name, $subscription_data );
 		$url = home_url( "/do/$ticket_name/" );
 		$data = array(
 			'URL' => $url,

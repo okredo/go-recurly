@@ -7,6 +7,7 @@ class GO_Recurly
 	public $meta_key_prefix = 'go-recurly_';
 	public $version = '1';
 	public $freebies = NULL;
+	public $signup_action = 'go_recurly_freebies_signup';
 
 	private $user_profile = NULL;
 	private $recurly_client = NULL;
@@ -29,12 +30,22 @@ class GO_Recurly
 		// filter this to set recurly subscription-related user caps
 		add_filter( 'user_has_cap', array( $this, 'user_has_cap' ), 10, 3 );
 
-		if ( ! is_admin() )
+		if ( is_admin() )
+		{
+			// instantiate freebies to get the freebies admin menu
+			$this->freebies();
+		}
+		else
 		{
 			add_shortcode( 'go_recurly_subscription_form', array( $this, 'subscription_form' ) );
 
 			add_action( 'init', array( $this, 'init' ) );
 
+			// the hook that wp-tix will use when the freebies invite email
+			// link is clicked
+			add_action( $this->signup_action, array( $this, 'signup_action' ), 10, 2 );
+
+			// @TODO: handle coupon detection in JS
 			$this->detect_coupon();
 		}//end if
 
@@ -52,9 +63,6 @@ class GO_Recurly
 		{
 			add_action( 'go_user_profile_email_updated', array( $this, 'go_user_profile_email_updated' ), 10, 2 );
 		}
-
-		// make sure freebies action hooks are live
-		$this->freebies();
 
 		add_filter( 'go_remote_identity_nav', array( $this, 'go_remote_identity_nav' ), 12, 2 );
 		add_filter( 'go_user_profile_screens', array( $this, 'go_user_profile_screens' ) );
@@ -76,6 +84,20 @@ class GO_Recurly
 	}//end init
 
 	/**
+	 * signup action; handles user click-through; allows a user to sign up
+	 * for a subscription
+	 *
+	 * @param $args array must contain email address of the invited user
+	 * @param $ticket array containing the subscription data we need to
+	 *  persist until the user clicks through the invitation email
+	 */
+	public function signup_action( $args, $ticket )
+	{
+golog( 'yo!' );
+		$this->freebies()->signup( $args, $ticket );
+	}//end signup_action
+
+	/**
 	 * hooked to WordPress init
 	 */
 	public function freebies()
@@ -83,7 +105,7 @@ class GO_Recurly
 		if ( ! $this->freebies  )
 		{
 			require_once __DIR__ . '/class-go-recurly-freebies.php';
-			$this->freebies = new GO_Recurly_Freebies();
+			$this->freebies = new GO_Recurly_Freebies( $this );
 		} // end if
 
 		return $this->freebies;
@@ -184,7 +206,7 @@ class GO_Recurly
 	{
 		list( $cap, $user_id ) = $args;
 
-		$subscription = go_subscriptions()->get_subscription_meta( $user_id );
+		$subscription = $this->get_subscription_meta( $user_id );
 
 		// did_trial indicates that the user had a trial account at one time (not necessarily still in their trial)
 		if ( isset( $subscription['sub_trial_started_at'] ) )
@@ -679,6 +701,22 @@ class GO_Recurly
 	}//end get_user_by_account_code
 
 	/**
+	 * helper function for getting prefixed subscription meta
+	 */
+	public function get_subscription_meta( $user_id )
+	{
+		return get_user_meta( $user_id, $this->meta_key_prefix . 'subscription', TRUE );
+	}//end get_subscription_meta
+
+	/**
+	 * helper function for updating prefixed subscription meta
+	 */
+	public function update_subscription_meta( $user_id, $meta )
+	{
+		return update_user_meta( $user_id, $this->meta_key_prefix . 'subscription', $meta );
+	}//end update_subscription_meta
+
+	/**
 	 * return all the meta that is set by this plugin in an array
 	 * @param int $user_id WordPress user id
 	 * @return array of meta values
@@ -695,8 +733,8 @@ class GO_Recurly
 		$meta_vals['title'] = isset( $profile_data['title'] ) ? $profile_data['title'] : '';
 
 		$meta_vals['account_code'] = $this->get_account_code( $user_id );
-		$meta_vals['subscription'] = go_subscriptions()->get_subscription_meta( $user_id );
-
+		$meta_vals['subscription'] = $this->get_subscription_meta( $user_id );
+		$meta_vals['created_date'] = get_user_meta( $user_id, $this->meta_key_prefix . 'created_date', TRUE );
 		$meta_vals['converted_meta'] = go_subscriptions()->get_converted_meta( $user_id );
 
 		return $meta_vals;

@@ -286,7 +286,8 @@ class GO_Recurly_Admin
 
 		$user_id = $user->ID;
 
-		$old_meta = get_user_meta( $user_id, $this->core->meta_key_prefix . 'subscription', TRUE );
+		$user_meta = $this->core->get_user_meta( $user_id );
+		$subscription_meta = $user_meta['subscription'];
 
 		// let's start a new meta array
 		$meta = array();
@@ -294,7 +295,7 @@ class GO_Recurly_Admin
 		// if we don't have the user's recurly first/last name set yet,
 		// then make sure we have a recurly account object so we can
 		// save the first/last name in our db
-		if ( ! $account && ( ! isset( $old_meta['first_name'] ) || ! isset( $old_meta['last_name'] ) ) )
+		if ( ! $account && ( ! isset( $subscription_meta['first_name'] ) || ! isset( $subscription_meta['last_name'] ) ) )
 		{
 			$account = $this->core->recurly_get_account( $user->ID );
 
@@ -307,13 +308,13 @@ class GO_Recurly_Admin
 		else
 		{
 			// we already have their recurly first/last name
-			if ( isset( $old_meta['first_name'] ) )
+			if ( isset( $subscription_meta['first_name'] ) )
 			{
-				$meta['first_name'] = $old_meta['first_name'];
+				$meta['first_name'] = $subscription_meta['first_name'];
 			}
-			if ( isset( $old_meta['last_name'] ) )
+			if ( isset( $subscription_meta['last_name'] ) )
 			{
-				$meta['last_name'] = $old_meta['last_name'];
+				$meta['last_name'] = $subscription_meta['last_name'];
 			}
 		}//end else
 
@@ -394,7 +395,7 @@ class GO_Recurly_Admin
 		{
 			go_user_profile()->set_role( $user, 'guest' );
 
-			go_subscriptions()->update_subscription_meta( $user_id, $meta );
+			$this->core->update_subscription_meta( $user_id, $meta );
 
 			return FALSE;
 		}//end if
@@ -427,9 +428,9 @@ class GO_Recurly_Admin
 				$meta['sub_last_payment_date'] = $transaction->created_at->format( 'Y-m-d\TH:i:s\Z' );
 				$meta['sub_last_payment_invnum'] = (int) $transaction->reference;
 
-				if ( isset( $old_meta['sub_initial_payment'] ) )
+				if ( isset( $subscription_meta['sub_initial_payment'] ) )
 				{
-					$meta['sub_initial_payment'] = $old_meta['sub_initial_payment'];
+					$meta['sub_initial_payment'] = $subscription_meta['sub_initial_payment'];
 				}
 				else
 				{
@@ -439,8 +440,7 @@ class GO_Recurly_Admin
 		}//end if
 
 		// set a created date if one has never been set. ever.
-		$created_date = get_user_meta( $user_id, $this->core->meta_key_prefix . 'created_date', TRUE );
-		if ( ! $created_date )
+		if ( empty( $user_meta['created_date'] ) )
 		{
 			update_user_meta( $user_id, $this->core->meta_key_prefix . 'created_date', strtotime( $meta['sub_activated_at'] ) );
 		}
@@ -466,7 +466,7 @@ class GO_Recurly_Admin
 			go_user_profile()->set_role( $user, 'guest' );
 		}
 
-		go_subscriptions()->update_subscription_meta( $user_id, $meta );
+		$this->core->update_subscription_meta( $user_id, $meta );
 
 		$this->core->update_email( $user );
 
