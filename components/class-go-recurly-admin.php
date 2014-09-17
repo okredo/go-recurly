@@ -75,7 +75,7 @@ class GO_Recurly_Admin
 			$_SERVER['PHP_AUTH_PW'] != $this->core->config['push_password']
 		)
 		{
-			header( 'WWW-Authenticate: Basic realm="Gigaom"' );
+			header( 'WWW-Authenticate: Basic realm="go-recurly"' );
 			header( 'HTTP/1.0 401 Unauthorized', true, 401 );
 			exit( 'Bad authentication response' );
 		}//end if
@@ -202,19 +202,14 @@ class GO_Recurly_Admin
 		}//end if
 
 		//change account_code to a recurly link
-		//escaping $value here so that we don't have to below (and break the <a>)
 		if ( 'account_code' == $key )
 		{
 			$value = $this->get_recurly_user_url( $value );
 		}
-		else
-		{
-			$value = esc_attr( $value );
-		}
 	 	?>
 	 	<tr class="form-field">
 			<th><?php echo esc_html( $key ); ?></th>
-			<td><code><?php echo wp_kses( $value ); ?></code></td>
+			<td><code><?php echo ( 'account_code' == $key ? wp_kses( $value ) : esc_html( $value ) ); ?></code></td>
 		</tr>
 		<?php
 	}//end show_user_profile_row

@@ -206,8 +206,7 @@ else {
 		go_recurly_freebies_admin.reset_invitations_form( true );
 	};
 
+	$( function() {
+		go_recurly_freebies_admin.init();
+	});
 })( jQuery );
-
-jQuery(function( $ ) {
-	go_recurly_freebies_admin.init();
-});

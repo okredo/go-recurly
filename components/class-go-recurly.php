@@ -49,8 +49,8 @@ class GO_Recurly
 			$this->detect_coupon();
 		}//end if
 
-		// on any other blog, we do not want/need the rest of this plugin's functionality
-		if ( 'accounts' != go_config()->get_property_slug() )
+		// we don't need the rest of the constructor if we're not on Accounts
+		if ( $this->config['accounts_blog_id'] != get_current_blog_id() )
 		{
 			return;
 		}
@@ -838,10 +838,7 @@ golog( 'yo!' );
 	 */
 	public function recurly_get_user( $notification )
 	{
-		if (
-			isset( $notification->account->account_code ) &&
-			! empty( $notification->account->account_code )
-		)
+		if ( ! empty( $notification->account->account_code ) )
 		{
 			// $notification->account and its children are SimpleXMLElement
 			// objects, which must be casted to string to get to their
@@ -854,10 +851,7 @@ golog( 'yo!' );
 			}
 			apply_filters( 'go_slog', 'go-recurly', 'failed to find a user with recurly account code: ' . $account_code, $notification );
 		}//END if
-		elseif (
-			isset( $notification->account->email ) &&
-			! empty( $notification->account->email )
-		)
+		elseif ( ! empty( $notification->account->email ) )
 		{
 			$email = (string) $notification->account->email;
 
@@ -1082,7 +1076,6 @@ golog( 'yo!' );
 		catch ( Recurly_NotFoundError $e )
 		{
 			// note that this is not a return condition - we want to create a subscription for a user in this case
-			//do_action( 'go_slog', 'go-recurly-freebies', 'okay to subscribe user ' . $user->user_email );
 		}
 		catch ( Exception $e )
 		{

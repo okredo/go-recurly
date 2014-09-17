@@ -34,7 +34,7 @@
 							if ( ! $sub_ends )
 							{
 								?>
-								- <a href="<?php echo esc_url( $template_variables['url'] . '/cancel?uuid=' . esc_attr( $item->uuid ) ); ?>" class="go-subscriptions-cancel">Cancel</a>
+								- <a href="<?php echo esc_url( $template_variables['url'] . '/cancel?uuid=' . esc_attr( $item->uuid ) ); ?>" class="go-recurly-cancel">Cancel</a>
 								<?php
 							}//end if
 							?>

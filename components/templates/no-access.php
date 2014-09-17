@@ -19,7 +19,7 @@
 			<?php
 			break;
 		default:
-			echo $template_variables['error'];
+			echo esc_html( $template_variables['error'] );
 	}//end switch
 	?>
 </p>
