@@ -19,12 +19,9 @@ class GO_Recurly_Admin
 
 		add_action( 'profile_update', array( $this, 'profile_update' ), 10, 2 );
 
-		if ( is_admin() )
-		{
-			// let's hook up some ajax actions
-			add_action( 'wp_ajax_go_recurly_push', array( $this, 'receive_push' ) );
-			add_action( 'wp_ajax_nopriv_go_recurly_push', array( $this, 'receive_push' ) );
-		}//end if
+		// let's hook up some ajax actions
+		add_action( 'wp_ajax_go_recurly_push', array( $this, 'receive_push' ) );
+		add_action( 'wp_ajax_nopriv_go_recurly_push', array( $this, 'receive_push' ) );
 	}//end __construct
 
 	/**
@@ -33,7 +30,6 @@ class GO_Recurly_Admin
 	public function admin_init()
 	{
 		wp_register_style( 'go-recurly-admin', plugins_url( 'css/go-recurly-admin.css', __FILE__ ), array(), $this->core->version );
-		wp_enqueue_style( 'go-recurly-admin' );
 
 		$this->handle_request();
 	}//end admin_init
@@ -46,7 +42,7 @@ class GO_Recurly_Admin
 		add_users_page(
 			'Search by Recurly Account Code',
 			'Search by Recurly Account Code',
-			' edit_users',
+			'edit_users',
 			'go-recurly-search-by-account-code',
 			array( $this, 'add_users_page' )
 		);
@@ -156,9 +152,12 @@ class GO_Recurly_Admin
 		<h3>Subscription Info</h3>
 		<a class="button" href="<?php echo admin_url(); ?>user-edit.php?user_id=<?php echo absint( $user->ID ); ?>&action=recurly_sync">Synchronize Recurly Data</a><?php
 		if ( isset( $this->recurly_error ) )
-		{ ?>
-		  <p><span class="recurly-error"><?php echo wp_kses( $this->recurly_error->getMessage() ); ?></span></p>
-		<?php
+		{
+			// we need the css for recurly-error class
+			wp_enqueue_style( 'go-recurly-admin' );
+			?>
+			<p><span class="recurly-error"><?php echo wp_kses( $this->recurly_error->getMessage(), array() ); ?></span></p>
+			<?php
 		}//END if
 		?>
 		<table class="form-table">
@@ -214,8 +213,8 @@ class GO_Recurly_Admin
 		}
 	 	?>
 	 	<tr class="form-field">
-			<th><?php _e( $key ); ?></th>
-			<td><code><?php echo $value; ?></code></td>
+			<th><?php echo esc_html( $key ); ?></th>
+			<td><code><?php echo wp_kses( $value ); ?></code></td>
 		</tr>
 		<?php
 	}//end show_user_profile_row
@@ -390,6 +389,7 @@ class GO_Recurly_Admin
 		}//end foreach
 
 		// the user doesn't have any subscriptions? set some info to defaults and bail.
+
 		if ( empty( $subscriptions ) )
 		{
 			go_user_profile()->set_role( $user, 'guest' );
@@ -424,7 +424,7 @@ class GO_Recurly_Admin
 			{
 				$meta['sub_did_subscription'] = TRUE;
 				$meta['sub_last_payment'] = (int) $transaction->amount_in_cents;
-				$meta['sub_last_payment_date'] = (string) $transaction->created_at->format( 'Y-m-d\TH:i:s\Z' );
+				$meta['sub_last_payment_date'] = $transaction->created_at->format( 'Y-m-d\TH:i:s\Z' );
 				$meta['sub_last_payment_invnum'] = (int) $transaction->reference;
 
 				if ( isset( $old_meta['sub_initial_payment'] ) )
@@ -500,7 +500,7 @@ class GO_Recurly_Admin
 				?>
 				<script type="text/javascript">
 					<!--
-					window.location = <?php echo '"' . get_edit_user_link( $user->ID ) . '"'; ?>;
+						window.location = <?php echo json_encode( get_edit_user_link( $user->ID ) ); ?>;
 					//-->
 				</script>
 				<?php

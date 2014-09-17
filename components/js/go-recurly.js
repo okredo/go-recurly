@@ -1,4 +1,5 @@
 (function( $ ) {
+
 	var methods = {};
 
 	methods.init = function() {
@@ -42,6 +43,7 @@
 					var $tos = $('.accept_tos', $( form ));
 					$tos.find('#tos_check').attr('checked', 'checked').hide();
 					$tos.find('#accept_tos').hide();
+					// @todo: move tos content to config
 					$tos.append('<p>By continuing, you are agreeing to our <a href="http://gigaom.com/terms-of-service/">Terms of Service</a> and <a href="http://gigaom.com/privacy-policy/">Privacy Policy</a>.</p>');
 
 					$('div.check').click(); // apply any coupon code
@@ -62,4 +64,11 @@
 
 		return null;
 	};
+
+	// listen for the "goPostSignUp" HTMLEvents that's fired at the end
+	// of the sign-up process
+	document.addEventListener( 'goPostSignUp', function( e ) {
+		$( '#go-recurly-form' ).GoSubscriptions( 'subscription' );
+		$( '#go-recurly-billing-form' ).GoSubscriptions( 'billing' );
+	}, false );
 })( jQuery );

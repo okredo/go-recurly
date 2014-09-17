@@ -26,7 +26,7 @@ class GO_Recurly
 			return;
 		}
 
-		// add our user cap at priority 11, after go-subscription's
+		// filter this to set recurly subscription-related user caps
 		add_filter( 'user_has_cap', array( $this, 'user_has_cap' ), 10, 3 );
 
 		if ( ! is_admin() )
@@ -39,7 +39,7 @@ class GO_Recurly
 		}//end if
 
 		// on any other blog, we do not want/need the rest of this plugin's functionality
-		if ( 'pro' != go_config()->get_property_slug() && 'accounts' != go_config()->get_property_slug() )
+		if ( 'accounts' != go_config()->get_property_slug() )
 		{
 			return;
 		}
@@ -136,42 +136,24 @@ class GO_Recurly
 			TRUE
 		);
 
-		wp_register_script(
-			'go-recurly-behavior',
-			plugins_url( 'js/go-recurly-behavior.js', __FILE__ ),
-			array( 'go-recurly' ),
-			$script_config['version'],
-			TRUE
-		);
-
 		wp_register_style( 'go-recurly', plugins_url( 'css/go-recurly.css', __FILE__ ), array(), $script_config['version'] );
 		wp_register_style( 'recurly-css', plugins_url( 'js/external/recurly-js/themes/default/recurly.css', __FILE__ ), array(), $script_config['version'] );
 
-		wp_enqueue_script( 'recurly-js' );
-		wp_enqueue_script( 'go-recurly-config' );
+		// this will pull in recurly-js and go-recurly-config
+		// because of go-recurly's dependencies list
+		// @TODO: only enqueue when we need them
 		wp_enqueue_script( 'go-recurly' );
-		wp_enqueue_script( 'go-recurly-behavior' );
 
 		wp_enqueue_style( 'recurly-css' );
 		wp_enqueue_style( 'go-recurly' );
 
-		// check if we have an email-less user, which can exist if the user
-		// logged in with a social network account
-		$user_has_email = 0;
-		$user = go_subscriptions()->get_user();
-		if ( $user && isset( $user['email'] ) && ! empty( $user['email'] ) )
-		{
-			$user_has_email = 1;
-		}
 		wp_localize_script(
 			'go-recurly-config',
 			'go_recurly_settings',
 			array(
 				'subdomain' => $this->config['recurly_subdomain'],
-				'user_has_email' => $user_has_email,
 			)
 		);
-		wp_localize_script( 'go-recurly-behavior', 'go_recurly_ajax', array( 'url' => site_url( '/wp-admin/admin-ajax.php' ) ) );
 	}//end wp_enqueue_scripts
 
 	/**
@@ -240,7 +222,6 @@ class GO_Recurly
 		}
 
 		// login_with_key is for go-softlogins
-		// @todo: should this include 'guest' as well?
 		if ( empty( $all_caps['has_subscription_data'] ) )
 		{
 			if ( ! empty( $all_caps['guest-prospect'] ) || ! empty( $all_caps['guest'] ) )
@@ -667,7 +648,7 @@ class GO_Recurly
 	public function get_template_part( $template_name, $template_variables = array() )
 	{
 		ob_start();
-		include( __DIR__ . '/templates/' . $template_name );
+		include __DIR__ . '/templates/' . $template_name;
 		return ob_get_clean();
 	}//end get_template_part
 
@@ -726,7 +707,7 @@ class GO_Recurly
 	 */
 	public function get_or_create_account_code( $user )
 	{
-		if ( ! ( $user instanceof WP_User ) || $user->ID == 0 )
+		if ( ! ( $user instanceof WP_User ) || 0 == $user->ID )
 		{
 			return FALSE;
 		}
@@ -756,7 +737,7 @@ class GO_Recurly
 
 		if ( ! $this->recurly_client )
 		{
-			require_once( __DIR__ . '/external/recurly-client-php/lib/recurly.php' );
+			require_once __DIR__ . '/external/recurly-client-php/lib/recurly.php';
 
 			// Required for the API
 			Recurly_Client::$apiKey = $this->config['recurly_api_key'];

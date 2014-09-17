@@ -1,6 +1,6 @@
 <?php
 
-class GO_Recurly_Freebies_Admin extends GO_Recurly_Freebies
+class GO_Recurly_Freebies_Admin
 {
 	public $core = NULL;
 	public $free_period = '2 weeks'; // default free period to be offered
@@ -43,10 +43,9 @@ class GO_Recurly_Freebies_Admin extends GO_Recurly_Freebies
 			'go-recurly-freebies-admin',
 			'go_recurly_freebies_admin',
 			array(
-				'admin_ajax' => site_url( '/wp-admin/admin-ajax.php' ),
+				'admin_ajax' => admin_url( 'admin-ajax.php' ),
 			)
 		);
-
 	}//end register_scripts_and_styles
 
 	/**
@@ -117,7 +116,7 @@ class GO_Recurly_Freebies_Admin extends GO_Recurly_Freebies
 				}//end if
 
 				// invite user
-				if ( $this->invite( $email, $subscription_data ) )
+ 				if ( $this->core->invite( $email, $subscription_data ) )
 				{
 					$users_invited[] = $email;
 					//do_action( 'go_slog', 'go-recurly-freebies', 'invited a freebie user', $email );
@@ -131,7 +130,7 @@ class GO_Recurly_Freebies_Admin extends GO_Recurly_Freebies
 
 		$result = array( 'invited' => $users_invited, 'skipped' => $skipped, 'invalid' => $invalid );
 
-		echo json_encode( $result );
+		wp_send_json_success( $result );
 		wp_die();
 	}// end batch_invite
 
@@ -167,7 +166,7 @@ class GO_Recurly_Freebies_Admin extends GO_Recurly_Freebies
 	 */
 	public function nonce_field()
 	{
-		wp_nonce_field( plugin_basename( __FILE__ ), $this->id_base .'-nonce' );
+		wp_nonce_field( plugin_basename( __FILE__ ), $this->core->id_base .'-nonce' );
 	}//end nonce_field
 
 	/**
@@ -175,11 +174,11 @@ class GO_Recurly_Freebies_Admin extends GO_Recurly_Freebies
 	 */
 	public function verify_nonce()
 	{
-		if ( ! isset( $_REQUEST[ $this->id_base .'-nonce' ] ) )
+		if ( ! isset( $_REQUEST[ $this->core->id_base .'-nonce' ] ) )
 		{
 			return FALSE;
 		}// end if
 
-		return wp_verify_nonce( $_REQUEST[ $this->id_base .'-nonce' ], plugin_basename( __FILE__ ) );
+		return wp_verify_nonce( $_REQUEST[ $this->core->id_base .'-nonce' ], plugin_basename( __FILE__ ) );
 	}//end verify_nonce
 }//end class

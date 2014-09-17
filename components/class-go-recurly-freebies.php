@@ -2,7 +2,6 @@
 
 class GO_Recurly_Freebies
 {
-	public $version = '1';
 	public $id_base = 'go-recurly-freebies';
 	public $signin_url = '/subscription/thanks/';
 
@@ -64,7 +63,7 @@ class GO_Recurly_Freebies
 	 * @param array $subscription_data data about the subscription, from the invitation form and/or config, e.g., coupon code.
 	 * @return boolean TRUE if no errors sending the email (doesn't mean user received it) | FALSE otherwise
 	 */
-	protected function invite( $email, $subscription_data )
+	public function invite( $email, $subscription_data )
 	{
 		$subscription_data['email'] = $email;// add email field to the free period and coupon code info, to be persisted in WPTix
 		$ticket_name = wptix()->generate_md5();

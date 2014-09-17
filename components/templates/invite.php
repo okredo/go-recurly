@@ -51,7 +51,7 @@ else
 				<select name="go_recurly_freebies_free_period" class="select" id="go_recurly_freebies_free_period">
 					<?php
 					echo go_recurly()->freebies()->admin()->build_options(
-						go_recurly()->freebies()->admin()->config( 'free_period' ),
+						go_recurly()->freebies()->config( 'free_period' ),
 						go_recurly()->freebies()->admin()->free_period
 					);
 					?>

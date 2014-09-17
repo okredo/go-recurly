@@ -78,19 +78,11 @@ else {
 			}
 		})
 			.done( function( data ) {
-				if ( data.success === false ){
-					this.$invitations.unblock();
-					this.$invitations.html( data.data );
-					return;
-				}
-				else {
-					var parsed = $.parseJSON( data );
-					go_recurly_freebies_admin.setup_report_back();
-					var new_users = go_recurly_freebies_admin.pretty_print( parsed.invited );
-					var invalid_users = parsed.invalid;
-					var skipped_users = go_recurly_freebies_admin.pretty_print( parsed.skipped );
-					go_recurly_freebies_admin.message( new_users, invalid_users, skipped_users );
-				}
+				go_recurly_freebies_admin.setup_report_back();
+				var new_users = go_recurly_freebies_admin.pretty_print( data.data.invited );
+				var invalid_users = data.data.invalid;
+				var skipped_users = go_recurly_freebies_admin.pretty_print( data.data.skipped );
+				go_recurly_freebies_admin.message( new_users, invalid_users, skipped_users );
 			})
 			.fail( function( jqXHR, textStatus ) {
 				go_recurly_freebies_admin.$invitations.unblock();
@@ -149,14 +141,14 @@ else {
 		var skipped_msg = '';
 
 		// message re newly invited:
-		if ( new_users.count === 1 ) {
+		if ( 1 === new_users.count ) {
 			invitations_msg = 'The following user was successfully added:';
 		}
-		else if ( new_users.count === 0 ) {
+		else if ( 0 === new_users.count ) {
 			invitations_msg = 'There were no users added. ';
 			this.$invite_users_try_again.show();
 		}
-		else if ( new_users.count > 1 ) {
+		else if ( 1 < new_users.count ) {
 			invitations_msg = 'The following ' + new_users.count + ' users were successfully added:';
 		}
 
@@ -165,7 +157,7 @@ else {
 			invalid_msg = 'There were ' + invalid_count + ' users with invalid email addresses who were not invited.';
 		}
 		// message re single invalid:
-		else if ( invalid_count === 1 ) {
+		else if ( 1 === invalid_count ) {
 			invalid_msg = 'There was one invalid email address.';
 		}
 
@@ -174,7 +166,7 @@ else {
 			skipped_msg = 'The following ' + skipped_users.count + ' recognized subscribers were skipped:';
 		}
 		// message re already existing:
-		else if ( skipped_users.count === 1 ) {
+		else if ( 1 === skipped_users.count ) {
 			skipped_msg = 'We skipped this recognized subscriber:';
 		}
 
