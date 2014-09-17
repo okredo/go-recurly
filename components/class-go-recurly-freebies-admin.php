@@ -7,7 +7,9 @@ class GO_Recurly_Freebies_Admin
 
 	/**
 	 * Constructor
-	 * @param $core - an object to act as a delegate handle to the parent class
+	 * @param $core - an object to act as a delegate handle to the containing
+	 *  class. in our case we expect it to be an instance of
+	 *  GO_Recurly_Freebies
 	 */
 	public function __construct( $core )
 	{
@@ -145,7 +147,7 @@ class GO_Recurly_Freebies_Admin
 	{
 		$subscription_data['email'] = $email;// add email field to the free period and coupon code info, to be persisted in WPTix
 		$ticket_name = wptix()->generate_md5();
-		wptix()->register_ticket( $this->core->signup_action, $ticket_name, $subscription_data );
+		wptix()->register_ticket( go_recurly()->signup_action, $ticket_name, $subscription_data );
 		$url = home_url( "/do/$ticket_name/" );
 		$data = array(
 			'URL' => $url,
