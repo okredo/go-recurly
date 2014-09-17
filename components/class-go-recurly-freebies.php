@@ -37,37 +37,6 @@ class GO_Recurly_Freebies
 	}//end admin
 
 	/**
-	 * invites a user to the free subscription
-	 *
-	 * @param string $email email to invite
-	 * @param array $subscription_data data about the subscription, from the invitation form and/or config, e.g., coupon code.
-	 * @return boolean TRUE if no errors sending the email (doesn't mean user received it) | FALSE otherwise
-	 */
-	public function invite( $email, $subscription_data )
-	{
-		$subscription_data['email'] = $email;// add email field to the free period and coupon code info, to be persisted in WPTix
-		$ticket_name = wptix()->generate_md5();
-		wptix()->register_ticket( $this->core->signup_action, $ticket_name, $subscription_data );
-		$url = home_url( "/do/$ticket_name/" );
-		$data = array(
-			'URL' => $url,
-			'STYLESHEET_URL' => preg_replace( '/^https:/', 'http:', get_stylesheet_directory_uri() ),
-			'DATE_YEAR' => date( 'Y' ),
-		);
-		$email_template = 'alerts-beta';
-
-		$headers = array();
-		$headers[] = 'Content-Type: text/html';
-		$headers[] = 'From: research@gigaom.com';
-		$headers[] = 'X-MC-Template: ' . $email_template;
-		$headers[] = 'X-MC-MergeVars: ' . json_encode( $data );
-
-		$message = '<placeholder>';// this will be replaced by mandrill template
-		$subject = 'Gigaom Research Invitation';
-		return wp_mail( $email, $subject, $message, $headers );
-	}//end invite
-
-	/**
 	 * signup action; handles user click-through; allows a user to sign up for a subscription
 	 *
 	 * @param $args array must contain email address of the invited user
