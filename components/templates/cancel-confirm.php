@@ -7,7 +7,7 @@ if (
 {
 	?>
 	<h3>Leaving so soon?</h3>
-	<p>By clicking the submit button below, you are confirming that you would like to cancel your trial of Gigaom Research. Since you are canceling during the free trial period, your credit card will not be charged.</p>
+	<p>By clicking the submit button below, you are confirming that you would like to cancel your trial of <?php echo esc_html( $template_variables['subscription_provider'] ); ?>. Since you are canceling during the free trial period, your credit card will not be charged.</p>
 	<?php
 }//end if
 elseif (
@@ -17,20 +17,26 @@ elseif (
 {
 	?>
 	<h3>Sorry to see you go!</h3>
-	<p>By clicking the submit button below, you are confirming that you would like to cancel your subscription of Gigaom Research. Please allow several days for a refund to be applied to your credit card.</p>
+	<p>By clicking the submit button below, you are confirming that you would like to cancel your subscription of <?php echo esc_html( $template_variables['subscription_provider'] ); ?>. Please allow several days for a refund to be applied to your credit card.</p>
 	<?php
 }//end elseif
 else
 {
 	?>
 	<h3>Sorry to see you go!</h3>
-	<p>By clicking the submit button below, you are confirming that you do not want to renew your subscription to Gigaom Research. You will not be charged on your renewal date and your access to Gigaom research and analysis will be restricted.</p>
+	<p>By clicking the submit button below, you are confirming that you do not want to renew your subscription to <?php echo esc_html( $template_variables['subscription_provider'] ); ?>. You will not be charged on your renewal date and your access to <?php echo esc_html( $template_variables['subscription_provider'] ); ?> and analysis will be restricted.</p>
 	<?php
 }//end else
+
+
+// is there a survey?
+if ( ! empty( $template_variables['survey_url'] ) )
+{
 ?>
-
-<p>Before you go we'd really appreciate it if you shared with us feedback on why Gigaom Research did not meet your needs via a <a href="http://www.surveymonkey.com/s/TGP82MJ">simple survey.</a> One question only, it'll just take a sec. Thanks!</p>
-
+<p>Before you go we'd really appreciate it if you shared with us feedback on why <?php echo esc_html( $template_variables['subscription_provider'] ); ?> did not meet your needs via a <a href="<?php echo esc_url( $template_variables['survey_url'] ); ?>">simple survey.</a> One question only, it'll just take a sec. Thanks!</p>
+<?php
+}//end if
+?>
 <form name="cancel" method="get" id="cancel-form" class="go-standard">
 	<?php wp_nonce_field( 'go_recurly_cancel' ); ?>
 	<input type="hidden" name="confirm" value=""/>

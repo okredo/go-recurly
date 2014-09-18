@@ -18,7 +18,7 @@ if ( apply_filters( 'go_site_locked', FALSE ) )
 		<ul>
 			<li>Your credit card will not be charged until the 7-day trial is complete.</li>
 			<li>Cancel online anytime during the trial if it's not right for you.</li>
-			<li><a href="mailto:support@gigaom.com">Email</a> us at any time for support.</li>
+			<li><a href="mailto:<?php echo esc_attr( $template_variables['support_email'] ); ?>">Email</a> us at any time for support.</li>
 		</ul>
 	</div>
 </div>

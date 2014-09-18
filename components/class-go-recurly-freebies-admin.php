@@ -158,12 +158,13 @@ class GO_Recurly_Freebies_Admin
 
 		$headers = array();
 		$headers[] = 'Content-Type: text/html';
-		$headers[] = 'From: research@gigaom.com';
+		$headers[] = 'From: ' . go_recurly()->config['invite_from'];
 		$headers[] = 'X-MC-Template: ' . $email_template;
 		$headers[] = 'X-MC-MergeVars: ' . json_encode( $data );
 
 		$message = '<placeholder>';// this will be replaced by mandrill template
-		$subject = 'Gigaom Research Invitation';
+		$subject = go_recurly()->config['invite_subject'];
+
 		return wp_mail( $email, $subject, $message, $headers );
 	}//end invite
 

@@ -26,26 +26,6 @@
 	}
 }
 
-.research-generic-button {
-	background-color: #045d90;
-	background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#057dc2), to(#022d46));
-	background-image: -webkit-linear-gradient(top, #057dc2, #034d77);
-	background-image: -o-linear-gradient(top, #057dc2, #034d77);
-	background-image: linear-gradient(to bottom, #057dc2, #034d77);
-	background-image: -moz-linear-gradient(top, #057dc2, #034d77);
-	border: 1px solid #022d46;
-}
-
-.research-generic-button:hover {
-	background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#056da9), to(#033d5e));
-	background-image: -webkit-linear-gradient(top, #056da9, #033d5e);
-	background-image: -o-linear-gradient(top, #056da9, #033d5e);
-	background-image: linear-gradient(to bottom, #056da9, #033d5e);
-	background-image: -moz-linear-gradient(top, #056da9, #033d5e);
-	border: 1px solid #010d14;
-	color: #fff;
-}
-
 // Subscriptions List
 
 .go-recurly-list {

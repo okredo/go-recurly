@@ -175,6 +175,14 @@ class GO_Recurly
 				'subdomain' => $this->config['recurly_subdomain'],
 			)
 		);
+		wp_localize_script(
+			'go-recurly',
+			'go_recurly_settings',
+			array(
+				'tos_url' => $this->config['tos_url'],
+				'privacy_policy_url' => $this->config['privacy_policy_url'],
+			)
+		);
 	}//end wp_enqueue_scripts
 
 	/**
@@ -583,8 +591,9 @@ class GO_Recurly
 		$sc_atts = shortcode_atts(
 			array(
 				'plan_code' => $this->config['default_recurly_plan_code'],
-				'terms_url' => 'http://gigaom.com/terms-of-service/',
-				'thankyou_path' => $this->config['thankyou_path'], // xxx
+				'terms_url' => $this->config['tos_url'],
+				'thankyou_path' => $this->config['thankyou_path'],
+				'support_email' => $this->config['support_email'],
 			),
 			$atts
 		);
@@ -653,6 +662,7 @@ class GO_Recurly
 			'url'       => wp_validate_redirect( $sc_atts['thankyou_path'], $this->config['thankyou_path'] ),
 			'plan_code' => $sc_atts['plan_code'],
 			'terms_url' => $sc_atts['terms_url'],
+			'support_email' => $sc_atts['support_email'],
 		);
 
 		return $this->get_template_part( 'subscription-form.php', $args );
@@ -730,6 +740,7 @@ class GO_Recurly
 
 		$meta_vals['company'] = isset( $profile_data['company'] ) ? $profile_data['company'] : '';
 		$meta_vals['title'] = isset( $profile_data['title'] ) ? $profile_data['title'] : '';
+		$meta_vals['timezone'] = isset( $profile_data['timezone'] ) ? $profile_data['timezone'] : '';
 
 		$meta_vals['account_code'] = $this->get_account_code( $user_id );
 		$meta_vals['subscription'] = $this->get_subscription_meta( $user_id );

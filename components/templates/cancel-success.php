@@ -1,1 +1,1 @@
-<p>Your account status change is confirmed. Thank you again for trying out Gigaom Research.</p>
+<p>Your account status change is confirmed. Thank you again for trying out <?php echo esc_html( $template_variables['subscription_provider'] ); ?>.</p>

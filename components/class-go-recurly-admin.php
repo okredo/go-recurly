@@ -222,7 +222,7 @@ class GO_Recurly_Admin
 		}
 
 		$url = sprintf(
-			'<a href="https://gigaom.recurly.com/accounts/%1$s">%1$s</a>',
+			'<a href="' . $this->core->config['recurly_account_base_url'] . '%1$s">%1$s</a>',
 			esc_attr( $account_code )
 		);
 
