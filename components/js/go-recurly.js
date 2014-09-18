@@ -44,7 +44,7 @@
 					$tos.find('#tos_check').attr('checked', 'checked').hide();
 					$tos.find('#accept_tos').hide();
 					// @todo: move tos content to config
-					$tos.append('<p>By continuing, you are agreeing to our <a href="http://gigaom.com/terms-of-service/">Terms of Service</a> and <a href="http://gigaom.com/privacy-policy/">Privacy Policy</a>.</p>');
+					$tos.append('<p>By continuing, you are agreeing to our <a href="' + go_recurly_settings.tos_url + '">Terms of Service</a> and <a href="' + go_recurly_settings.privacy_policy_url + '">Privacy Policy</a>.</p>');
 
 					$('div.check').click(); // apply any coupon code
 				}

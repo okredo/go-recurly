@@ -11,7 +11,9 @@
 		foreach ( $template_variables['invoices'] as $invoice )
 		{
 			$timestamp = $invoice->created_at->getTimestamp();
-			$invoice->created_at->setTimezone( new DateTimeZone( 'America/Los_Angeles' ) );
+			$timezone_string = ! empty( $template_variables['timezone_string'] ) ? $template_variables['timezone_string'] : 'America/Los_Angeles';
+
+			$invoice->created_at->setTimezone( new DateTimeZone( $timezone_string ) );
 
 			?>
 			<div id="invoice_<?php echo esc_attr( $invoice->invoice_number ); ?>" class="boxed invoice status-<?php echo esc_attr( $invoice->status ); ?>">
@@ -22,7 +24,7 @@
 				<section class="body">
 					<dl>
 						<dt>Billed on</dt>
-						<dd><?php echo $invoice->created_at->format( 'M j, Y g:ia' ) . ' PST'; ?></dd>
+						<dd><?php echo $invoice->created_at->format( 'M j, Y g:ia T (\G\M\T P)' ); ?></dd>
 						<dt>Total</dt>
 						<dd>$ <?php echo number_format( $invoice->total_in_cents / 100, 2 ); ?> <?php echo esc_html( $invoice->currency ); ?></dd>
 					</dl>

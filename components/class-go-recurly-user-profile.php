@@ -134,10 +134,12 @@ class GO_Recurly_User_Profile
 		$subscription_meta = $this->core->get_subscription_meta( get_current_user_id() );
 
 		$args = array(
-			'account_code'      => $account->account_code,
-			'subscription'      => $subscription,
-			'subscription_meta' => $subscription_meta,
-			'url'               => '/members/' . go_user_profile()->displayed_user->ID . '/subscription',
+			'account_code'          => $account->account_code,
+			'subscription'          => $subscription,
+			'subscription_meta'     => $subscription_meta,
+			'url'                   => '/members/' . go_user_profile()->displayed_user->ID . '/subscription',
+			'subscription_provider' => $this->core->config['subscription_provider'],
+			'survey_url'            => $this->core->config['survey_url']
 		);
 
 		if ( isset( $_GET['confirm'] ) )
@@ -222,9 +224,13 @@ class GO_Recurly_User_Profile
 			);
 		}//end if
 
+		$user_meta = $this->core->get_user_meta( get_current_user_id() );
+		$timezone_string = ! empty( $user_meta['timezone'] ) ? $user_meta['timezone'] : get_option('timezone_string');
+
 		$args = array(
-			'invoices' => $invoices,
-			'url'  => '/members/' . go_user_profile()->displayed_user->ID . '/subscription/invoice/',
+			'invoices'        => $invoices,
+			'url'             => '/members/' . go_user_profile()->displayed_user->ID . '/subscription/invoice/',
+			'timezone_string' => $timezone_string,
 		);
 
 		echo $this->core->get_template_part( 'history.php', $args );
@@ -264,7 +270,7 @@ class GO_Recurly_User_Profile
 			// this page returns a 404 file not found.  Well, that's not accurate.  Return a 200 OK
 			header( 'HTTP/1.0 200 OK' );
 			header( 'Content-Type: application/pdf' );
-			header( 'Content-Disposition: attachment;filename="Gigaom-Research-Invoice-' . $invoice->created_at->format( 'Y-m-d' ) . '.pdf"' );
+			header( 'Content-Disposition: attachment;filename="' . $this->core->config['invoice_filename_prefix'] . $invoice->created_at->format( 'Y-m-d' ) . '.pdf"' );
 
 			$pdf = Recurly_Invoice::getInvoicePdf( $invoice_id, 'en-US' );
 		}//end try
