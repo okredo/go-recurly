@@ -97,7 +97,7 @@ class GO_Recurly_User_Profile
 
 		if ( $account = $this->core->recurly_get_account( get_current_user_id() ) )
 		{
-			apply_filters( 'go_slog', 'go-recurly_subscriptions-cancel', 'has recurly account', array( $subscription_id, get_current_user_id(), $this->core->get_account_code( get_current_user_id() )));
+			apply_filters( 'go_slog', 'go-recurly_subscriptions-cancel', 'has recurly account', array( $subscription_id, get_current_user_id(), $this->core->get_account_code( get_current_user_id() ) ) );
 
 			try
 			{
@@ -109,7 +109,7 @@ class GO_Recurly_User_Profile
 			{
 				echo $this->core->get_template_part( 'no-access.php', array( 'error' => $e->getMessage() ) );
 
-				apply_filters( 'go_slog', 'subscriptions-cancel', 'FAIL no recurly subscription found', array( $subscription_id, get_current_user_id() ));
+				apply_filters( 'go_slog', 'subscriptions-cancel', 'FAIL no recurly subscription found', array( $subscription_id, get_current_user_id() ) );
 
 				return;
 			}//end catch
@@ -126,7 +126,7 @@ class GO_Recurly_User_Profile
 
 			echo $this->core->get_template_part( 'no-access.php', $args );
 
-			apply_filters( 'go_slog', 'subscriptions-cancel', 'FAIL no recurly subscription doesn`t match', array( $subscription_id, get_current_user_id() ));
+			apply_filters( 'go_slog', 'subscriptions-cancel', 'FAIL no recurly subscription doesn`t match', array( $subscription_id, get_current_user_id() ) );
 
 			return;
 		}//end if
@@ -174,7 +174,7 @@ class GO_Recurly_User_Profile
 				$message = $this->core->cancel_subscription( get_current_user_id(), $subscription );
 			}//end else
 
-			if( FALSE === $message )
+			if ( FALSE === $message )
 			{
 				echo $this->core->get_template_part( 'cancel-success.php', $args );
 
