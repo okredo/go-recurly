@@ -91,25 +91,25 @@ class GO_Recurly_User_Profile
 	{
 		$subscription_id = preg_replace( '/[^a-z0-9]/', '', $_GET['uuid'] );
 
-		apply_filters( 'go_slog', 'go-recurly_subscriptions-cancel', 'start cancel_content() method', $subscription_id );
+		do_action( 'go_slog', 'go-recurly_subscriptions-cancel', 'start cancel_content() method', $subscription_id );
 
 		$client = $this->core->recurly_client();
 
 		if ( $account = $this->core->recurly_get_account( get_current_user_id() ) )
 		{
-			apply_filters( 'go_slog', 'go-recurly_subscriptions-cancel', 'has recurly account', array( $subscription_id, get_current_user_id(), $this->core->get_account_code( get_current_user_id() ) ) );
+			do_action( 'go_slog', 'go-recurly_subscriptions-cancel', 'has recurly account', array( $subscription_id, get_current_user_id(), $this->core->get_account_code( get_current_user_id() ) ) );
 
 			try
 			{
 				$subscription  = Recurly_Subscription::get( $subscription_id, $client );
 
-				apply_filters( 'go_slog', 'go-recurly_subscriptions-cancel', 'found recurly subscription', $subscription );
+				do_action( 'go_slog', 'go-recurly_subscriptions-cancel', 'found recurly subscription', $subscription );
 			}
 			catch ( Exception $e )
 			{
 				echo $this->core->get_template_part( 'no-access.php', array( 'error' => $e->getMessage() ) );
 
-				apply_filters( 'go_slog', 'subscriptions-cancel', 'FAIL no recurly subscription found', array( $subscription_id, get_current_user_id() ) );
+				do_action( 'go_slog', 'subscriptions-cancel', 'FAIL no recurly subscription found', array( $subscription_id, get_current_user_id() ) );
 
 				return;
 			}//end catch
@@ -126,7 +126,7 @@ class GO_Recurly_User_Profile
 
 			echo $this->core->get_template_part( 'no-access.php', $args );
 
-			apply_filters( 'go_slog', 'subscriptions-cancel', 'FAIL no recurly subscription doesn`t match', array( $subscription_id, get_current_user_id() ) );
+			do_action( 'go_slog', 'subscriptions-cancel', 'FAIL no recurly subscription doesn`t match', array( $subscription_id, get_current_user_id() ) );
 
 			return;
 		}//end if
@@ -144,32 +144,32 @@ class GO_Recurly_User_Profile
 
 		if ( isset( $_GET['confirm'] ) )
 		{
-			apply_filters( 'go_slog', 'go-recurly_subscriptions-cancel', 'cancel_content() confirm conditional', $subscription_id );
+			do_action( 'go_slog', 'go-recurly_subscriptions-cancel', 'cancel_content() confirm conditional', $subscription_id );
 
 			if ( ! check_admin_referer( 'go_recurly_cancel' ) )
 			{
-				apply_filters( 'go_slog', 'go-recurly_subscriptions-cancel', 'FAIL check_admin_referer() test', $subscription_id );
+				do_action( 'go_slog', 'go-recurly_subscriptions-cancel', 'FAIL check_admin_referer() test', $subscription_id );
 
 				return new WP_Error( 'bad nonce', 'Form submission failed security checks.' );
 			}//end if
 
 			if ( isset( $subscription->trial_ends_at ) && time() <= $subscription->trial_ends_at->getTimestamp() )
 			{
-				apply_filters( 'go_slog', 'go-recurly_subscriptions-cancel', 'attempt to cancel trial', $subscription_id );
+				do_action( 'go_slog', 'go-recurly_subscriptions-cancel', 'attempt to cancel trial', $subscription_id );
 
 				// still in the trial, terminate the account immediately, but specify no refund since no charges should be applied.
 				$message = $this->core->cancel_subscription( get_current_user_id(), $subscription, 'none' );
 			}//end if
 			elseif ( strtotime( '-120 days' ) < strtotime( $subscription_meta->sub_last_payment_date ) )
 			{
-				apply_filters( 'go_slog', 'go-recurly_subscriptions-cancel', 'attempt to cancel subscription with refund', $subscription_id );
+				do_action( 'go_slog', 'go-recurly_subscriptions-cancel', 'attempt to cancel subscription with refund', $subscription_id );
 
 				// within 120 days of last payment, terminate the account and refund all their payment
 				$message = $this->core->cancel_subscription( get_current_user_id(), $subscription, 'all' );
 			}//end elseif
 			else
 			{
-				apply_filters( 'go_slog', 'go-recurly_subscriptions-cancel', 'attempt to cancel subscription without refund', $subscription_id );
+				do_action( 'go_slog', 'go-recurly_subscriptions-cancel', 'attempt to cancel subscription without refund', $subscription_id );
 
 				// not in a trial and past 120 days since last payment, cancel the account so no auto-renew happens,
 				// but leave the account open until the subscription term is up
@@ -180,13 +180,13 @@ class GO_Recurly_User_Profile
 			{
 				echo $this->core->get_template_part( 'cancel-success.php', $args );
 
-				apply_filters( 'go_slog', 'go-recurly_subscriptions-cancel', 'success and end cancel_content() method', $subscription_id );
+				do_action( 'go_slog', 'go-recurly_subscriptions-cancel', 'success and end cancel_content() method', $subscription_id );
 			}
 			else
 			{
 				echo $this->core->get_template_part( 'no-access.php', array( 'error' => $message ) );
 
-				apply_filters( 'go_slog', 'go-recurly_subscriptions-cancel', 'fail and end cancel_content() method', $subscription_id );
+				do_action( 'go_slog', 'go-recurly_subscriptions-cancel', 'fail and end cancel_content() method', $subscription_id );
 			}//end else
 
 			return;
@@ -194,7 +194,7 @@ class GO_Recurly_User_Profile
 
 		echo $this->core->get_template_part( 'cancel-confirm.php', $args );
 
-		apply_filters( 'go_slog', 'go-recurly_subscriptions-cancel', 'end cancel_content() method', $subscription_id );
+		do_action( 'go_slog', 'go-recurly_subscriptions-cancel', 'end cancel_content() method', $subscription_id );
 	}//end cancel
 
 	/**

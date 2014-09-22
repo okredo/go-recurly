@@ -16,14 +16,11 @@ if ( file_exists( $bootstrap ) )
 	$GLOBALS['wp_tests_options'] = array(
 		'pro' => TRUE,
 		'active_plugins' => array(
-//			'co-authors-plus/co-authors-plus.php',
 			'go-config/go-config.php',
-//			'go-simple-db/go-simple-db.php',
+			'go-loggly/go-loggly.php',
 			'go-slog/go-slog.php',
 			'go-subscriptions/go-subscriptions.php',
 			'go-user-profile/go-user-profile.php',
-//			'wp-debug-robot/wp-debug-robot.php',
-//			'wp-ticket-framework/ticket-framework.php',
 			'go-recurly/go-recurly.php',
 		),
 		'template' => 'gigaom4-child',
