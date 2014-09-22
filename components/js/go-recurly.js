@@ -44,7 +44,7 @@
 					$tos.find('#tos_check').attr('checked', 'checked').hide();
 					$tos.find('#accept_tos').hide();
 					// @todo: move tos content to config
-					$tos.append('<p>By continuing, you are agreeing to our <a href="' + go_recurly_settings.tos_url + '">Terms of Service</a> and <a href="' + go_recurly_settings.privacy_policy_url + '">Privacy Policy</a>.</p>');
+					$tos.append('<p>By continuing, you are agreeing to our <a href="' + go_recurly.tos_url + '">Terms of Service</a> and <a href="' + go_recurly.privacy_policy_url + '">Privacy Policy</a>.</p>');
 
 					$('div.check').click(); // apply any coupon code
 				}
@@ -68,7 +68,11 @@
 	// listen for the "goPostSignUp" HTMLEvents that's fired at the end
 	// of the sign-up process
 	document.addEventListener( 'goPostSignUp', function( e ) {
+		// this builds the step 2 payment form
 		$( '#go-recurly-form' ).GoSubscriptions( 'subscription' );
+
+		// this builds the billing form on a user's Subscriptions -> Billing
+		// user settings page (/subscription/billing/)
 		$( '#go-recurly-billing-form' ).GoSubscriptions( 'billing' );
 	}, false );
 })( jQuery );

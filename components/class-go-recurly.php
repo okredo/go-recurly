@@ -110,7 +110,7 @@ class GO_Recurly
 		return $this->freebies;
 	}//end freebies
 
-/**
+	/**
 	 * Keeping form post handling segregated (or should we just merge this
 	 * into init?)
 	 */
@@ -173,14 +173,6 @@ class GO_Recurly
 			'go_recurly_settings',
 			array(
 				'subdomain' => $this->config['recurly_subdomain'],
-			)
-		);
-		wp_localize_script(
-			'go-recurly',
-			'go_recurly_settings',
-			array(
-				'tos_url' => $this->config['tos_url'],
-				'privacy_policy_url' => $this->config['privacy_policy_url'],
 			)
 		);
 	}//end wp_enqueue_scripts
@@ -635,7 +627,8 @@ class GO_Recurly
 		{
 			// the user is loading the 2nd step form prematurely. return the
 			// form for step 1
-			return go_subscriptions()->signup_form( $atts );
+			// @TODO: fix this dependency somehow
+			return go_local_subscriptions()->signup_form( $atts );
 		}
 
 		$signature = $this->sign_subscription( $account_code, $sc_atts['plan_code'] );
@@ -655,6 +648,8 @@ class GO_Recurly
 			'subscription' => array(
 				'couponCode' => $coupon,
 			),
+			'tos_url' => $this->config['tos_url'],
+			'privacy_policy_url' => $this->config['privacy_policy_url'],
 		) );
 
 		$args = array(
