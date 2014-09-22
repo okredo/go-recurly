@@ -540,7 +540,7 @@ class GO_Recurly
 
 		if ( empty( $account_code ) )
 		{
-			apply_filters( 'go_slog', 'go-recurly', 'update_email(): no recurly account code', $user_id );
+			do_action( 'go_slog', 'go-recurly', 'update_email(): no recurly account code', $user_id );
 			return; // nothing to update
 		}
 
@@ -807,7 +807,7 @@ class GO_Recurly
 
 			if ( empty( $account_code ) )
 			{
-				apply_filters( 'go_slog', 'go-recurly', 'expected Recurly account code, but found none', $user_id );
+				do_action( 'go_slog', 'go-recurly', 'expected Recurly account code, but found none', $user_id );
 				return FALSE;
 			}// end if
 
@@ -854,7 +854,8 @@ class GO_Recurly
 			{
 				return $user;
 			}
-			apply_filters( 'go_slog', 'go-recurly', 'failed to find a user with recurly account code: ' . $account_code, $notification );
+
+			do_action( 'go_slog', 'go-recurly', 'failed to find a user with recurly account code: ' . $account_code, (string) $notification->account );
 		}//END if
 		elseif ( ! empty( $notification->account->email ) )
 		{
@@ -881,7 +882,7 @@ class GO_Recurly
 
 			if ( is_wp_error( $user_id ) )
 			{
-				apply_filters( 'go_slog', 'go-recurly', 'failed to create a new guest user with email: ' . $email, array( $notification, $user_id ) );
+				do_action( 'go_slog', 'go-recurly', 'failed to create a new guest user with email: ' . $email, array( $notification, $user_id ) );
 				return FALSE;
 			}
 
@@ -895,7 +896,7 @@ class GO_Recurly
 
 			if ( ! $ret || is_wp_error( $ret ) )
 			{
-				apply_filters( 'go_slog', 'go-recurly', 'failed to sync new user recurly account code to recurly!!!', array( $notification, $ret ) );
+				do_action( 'go_slog', 'go-recurly', 'failed to sync new user recurly account code to recurly!!!', array( $notification, $ret ) );
 				return FALSE;
 			}
 
