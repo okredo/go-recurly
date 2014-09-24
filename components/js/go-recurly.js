@@ -65,14 +65,12 @@
 		return null;
 	};
 
-	// listen for the "goPostSignUp" HTMLEvents that's fired at the end
-	// of the sign-up process
-	document.addEventListener( 'goPostSignUp', function( e ) {
-		// this builds the step 2 payment form
-		$( '#go-recurly-form' ).GoSubscriptions( 'subscription' );
+	// this builds the step 2 payment form if an element on the page
+	// is of the go-recurly-form class
+	$( '#go-recurly-form' ).GoSubscriptions( 'subscription' );
 
-		// this builds the billing form on a user's Subscriptions -> Billing
-		// user settings page (/subscription/billing/)
-		$( '#go-recurly-billing-form' ).GoSubscriptions( 'billing' );
-	}, false );
+	// this builds the billing form on a user's Subscriptions -> Billing
+	// user settings page (/subscription/billing/)
+	$( '#go-recurly-billing-form' ).GoSubscriptions( 'billing' );
+
 })( jQuery );

@@ -30,6 +30,9 @@ class GO_Recurly
 		// filter this to set recurly subscription-related user caps
 		add_filter( 'user_has_cap', array( $this, 'user_has_cap' ), 10, 3 );
 
+		add_filter( 'go_subscriptions_signup', array( $this, 'go_subscriptions_signup' ), 10, 3 );
+		add_filter( 'go_subscriptions_signup_form', array( $this, 'go_subscriptions_signup_form' ), 10, 2 );
+
 		if ( is_admin() )
 		{
 			// instantiate freebies to get the freebies admin menu
@@ -37,8 +40,6 @@ class GO_Recurly
 		}
 		else
 		{
-			add_shortcode( 'go_recurly_subscription_form', array( $this, 'subscription_form' ) );
-
 			add_action( 'init', array( $this, 'init' ) );
 
 			// the hook that wp-tix will use when the freebies invite email
@@ -160,9 +161,14 @@ class GO_Recurly
 		wp_register_style( 'go-recurly', plugins_url( 'css/go-recurly.css', __FILE__ ), array(), $script_config['version'] );
 		wp_register_style( 'recurly-css', plugins_url( 'js/external/recurly-js/themes/default/recurly.css', __FILE__ ), array(), $script_config['version'] );
 
+		// (it would be great to only enqueue these when necessary, but
+		// because we implemented the step 2 form as a return value
+		// from a filter, we cannot count on being able to still enqueue
+		// scripts and styles by the time we decide to inject the step 2
+		// form, so unfortunately we must enqueue these hese.)
+
 		// this will pull in recurly-js and go-recurly-config
 		// because of go-recurly's dependencies list
-		// @TODO: only enqueue when we need them
 		wp_enqueue_script( 'go-recurly' );
 
 		wp_enqueue_style( 'recurly-css' );
@@ -273,6 +279,41 @@ class GO_Recurly
 
 		return $all_caps;
 	}//END user_has_cap
+
+	public function go_subscriptions_signup( $redirect_url, $user, $post_vars )
+	{
+		if ( ! isset( $user->ID ) || 0 >= $user->ID  )
+		{
+			return $redirect_url;
+		}
+
+		if ( ! $user = get_user_by( 'id', $user->ID ) )
+		{
+			return $redirect_url;
+		}
+
+		if ( user_can( $user, 'subscribe' ) )
+		{
+			return $redirect_url;
+		}
+
+		return $this->config['signup_path'];
+	}//END go_subscriptions_signup
+
+	public function go_subscriptions_signup_form( $form, $user_id )
+	{
+		if ( ! $user = get_user_by( 'id', $user_id ) )
+		{
+			return $form;
+		}
+
+		if ( user_can( $user, 'subscribe' ) )
+		{
+			return $form;
+		}
+
+		return $this->subscription_form( $user, array() );
+	}//END go_subscriptions_signup_form
 
 	/**
 	 * detects if a coupon is set in the URL and sets a coupon cookie
@@ -590,7 +631,7 @@ class GO_Recurly
 			$atts
 		);
 
-		$user = go_subscriptions()->get_user();
+		$user = go_subscriptions()->get_user( $user->ID );
 
 		if (
 			isset( $_GET['plan_code'] ) &&
@@ -628,7 +669,7 @@ class GO_Recurly
 			// the user is loading the 2nd step form prematurely. return the
 			// form for step 1
 			// @TODO: fix this dependency somehow
-			return go_local_subscriptions()->signup_form( $atts );
+			return go_subscriptions()->signup_form( $atts );
 		}
 
 		$signature = $this->sign_subscription( $account_code, $sc_atts['plan_code'] );
