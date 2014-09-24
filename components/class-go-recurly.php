@@ -636,7 +636,7 @@ class GO_Recurly
 	 * Get the second form in the 2-step process, unless they are already
 	 * logged in, then fetches the 1st step
 	 *
-	 * @param array $user a user array whose 'obj' element is a WP_User object
+	 * @param WP_User $user a user object
 	 * @param array $atts attributes needed by the form
 	 * @return mixed FALSE if we're not ready for the 2nd step form yet
 	 */
@@ -655,8 +655,6 @@ class GO_Recurly
 			$atts
 		);
 
-		$user = go_subscriptions()->get_user( $user->ID );
-
 		if (
 			isset( $_GET['plan_code'] ) &&
 			$_GET['plan_code'] != $this->config['default_recurly_plan_code']
@@ -668,7 +666,7 @@ class GO_Recurly
 		else
 		{
 			// otherwise, use the default (and adjust based on previous trial)
-			if ( $user && $user['obj']->has_cap( 'did_trial' ) )
+			if ( $user && $user->has_cap( 'did_trial' ) )
 			{
 				// this strips off any trailing "-7daytrial" in plan code
 				list( $sc_atts['plan_code'] ) = explode( '-', $sc_atts['plan_code'] );
@@ -678,17 +676,14 @@ class GO_Recurly
 		if ( ! $user && isset( $_GET['email'] ) && is_email( $_GET['email'] ) )
 		{
 			// we will load the object so that we can see if they already have a recurly account code
-			$user = array(
-				'email' => $_GET['email'],
-				'obj' => get_user_by( 'email', $_GET['email'] ),
-			);
+			$user->user_email = $_GET['email'];
 		}//end if
 
 		$this->recurly_client();
 
-		$account_code = $this->get_or_create_account_code( $user['obj'] );
+		$account_code = $this->get_or_create_account_code( $user );
 
-		if ( empty( $account_code ) || empty( $user['email'] ) )
+		if ( empty( $account_code ) || empty( $user->user_email ) )
 		{
 			// the user is loading the 2nd step form prematurely. return the
 			// form for step 1
@@ -699,16 +694,18 @@ class GO_Recurly
 		$signature = $this->sign_subscription( $account_code, $sc_atts['plan_code'] );
 		$coupon    = $_COOKIE['go_subscription_coupon'] ?: '';
 
+		$usermeta = $this->get_user_meta( $user->ID );
+
 		wp_localize_script( 'go-recurly', 'go_recurly', array(
 			'account' => array(
-				'firstName'   => $user['first_name'],
-				'lastName'    => $user['last_name'],
-				'email'       => $user['email'],
-				'companyName' => $user['company'],
+				'firstName'   => $user->user_firstname,
+				'lastName'    => $user->user_lastname,
+				'email'       => $user->user_email,
+				'companyName' => $usermeta['company'],
 			),
 			'billing' => array(
-				'firstName' => $user['first_name'],
-				'lastName'  => $user['last_name'],
+				'firstName' => $user->user_firstname,
+				'lastName'  => $user->user_lastname,
 			),
 			'subscription' => array(
 				'couponCode' => $coupon,
