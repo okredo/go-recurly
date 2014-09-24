@@ -30,6 +30,8 @@ class GO_Recurly
 		// filter this to set recurly subscription-related user caps
 		add_filter( 'user_has_cap', array( $this, 'user_has_cap' ), 10, 3 );
 
+		add_filter( 'go_subscriptions_signup', array( $this, 'go_subscriptions_signup' ), 10, 3 );
+
 		if ( is_admin() )
 		{
 			// instantiate freebies to get the freebies admin menu
@@ -37,8 +39,6 @@ class GO_Recurly
 		}
 		else
 		{
-			add_shortcode( 'go_recurly_subscription_form', array( $this, 'subscription_form' ) );
-
 			add_action( 'init', array( $this, 'init' ) );
 
 			// the hook that wp-tix will use when the freebies invite email
@@ -273,6 +273,26 @@ class GO_Recurly
 
 		return $all_caps;
 	}//END user_has_cap
+
+	public function go_subscriptions_signup( $redirect_url, $user, $post_vars )
+	{
+		if ( ! isset( $user->ID ) || 0 >= $user->ID  )
+		{
+			return $redirect_url;
+		}
+
+		if ( ! $user = get_user_by( 'id', $user->ID ) )
+		{
+			return $redirect_url;
+		}
+
+		if ( user_can( $user, 'sub_state_active' ) )
+		{
+			return $redirect_url;
+		}
+
+		return $this->config['signup_path'];
+	}//END go_subscriptions_signup
 
 	/**
 	 * detects if a coupon is set in the URL and sets a coupon cookie
@@ -628,7 +648,7 @@ class GO_Recurly
 			// the user is loading the 2nd step form prematurely. return the
 			// form for step 1
 			// @TODO: fix this dependency somehow
-			return go_local_subscriptions()->signup_form( $atts );
+			return go_subscriptions()->signup_form( $atts );
 		}
 
 		$signature = $this->sign_subscription( $account_code, $sc_atts['plan_code'] );
