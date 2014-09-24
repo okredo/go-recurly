@@ -8,12 +8,12 @@ class GO_Recurly_Freebies_Admin
 	/**
 	 * Constructor
 	 * @param $core - an object to act as a delegate handle to the containing
-	 *  class. in our case we expect it to be an instance of
-	 *  GO_Recurly_Freebies
+	 *  class. in our case we expect it to be an instance of GO_Recurly_Freebies
 	 */
 	public function __construct( $core )
 	{
 		$this->core = $core;
+
 		add_action( 'admin_menu', array( $this, 'admin_menu' ) );
 
 		// ajax hook to batch-invite users

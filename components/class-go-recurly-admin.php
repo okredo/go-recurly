@@ -1,11 +1,20 @@
 <?php
-
+/**
+ * GO_Recurly_Admin
+ *
+ * Handles functionality used in the admin dashboard
+ *
+ * @author The Mythical GigaOM <dev@gigaom.com>
+ * @link   https://github.com/GigaOM/go-recurly
+ */
 class GO_Recurly_Admin
 {
 	private $core = NULL;
 
 	/**
 	 * Constructor
+	 *
+	 * @param GO_Recurly $core a handle to the containing GO_Recurly instance
 	 */
 	public function __construct( $core )
 	{

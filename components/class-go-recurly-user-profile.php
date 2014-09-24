@@ -6,6 +6,8 @@ class GO_Recurly_User_Profile
 
 	/**
 	 * Constructor
+	 *
+	 * @param GO_Recurly $core handle to the containing GO_Recurly singleton
 	 */
 	public function __construct( $core )
 	{
@@ -139,7 +141,7 @@ class GO_Recurly_User_Profile
 			'subscription_meta'     => $subscription_meta,
 			'url'                   => '/members/' . go_user_profile()->displayed_user->ID . '/subscription',
 			'subscription_provider' => $this->core->config['subscription_provider'],
-			'survey_url'            => $this->core->config['survey_url']
+			'survey_url'            => $this->core->config['survey_url'],
 		);
 
 		if ( isset( $_GET['confirm'] ) )
@@ -225,7 +227,7 @@ class GO_Recurly_User_Profile
 		}//end if
 
 		$user_meta = $this->core->get_user_meta( get_current_user_id() );
-		$timezone_string = ! empty( $user_meta['timezone'] ) ? $user_meta['timezone'] : get_option('timezone_string');
+		$timezone_string = ! empty( $user_meta['timezone'] ) ? $user_meta['timezone'] : get_option( 'timezone_string' );
 
 		$args = array(
 			'invoices'        => $invoices,

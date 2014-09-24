@@ -1,5 +1,13 @@
 <?php
-
+/**
+ * GO_Recurly
+ *
+ * This is where we make Recurly API calls as well as the singleton that
+ * contains handles to various other class instances we use.
+ *
+ * @author The Mythical GigaOM <dev@gigaom.com>
+ * @link   https://github.com/GigaOM/go-recurly
+ */
 class GO_Recurly
 {
 	public $config = NULL;
@@ -81,7 +89,12 @@ class GO_Recurly
 
 		// doing this here rather than on the wp_enqueue_scripts hook so
 		// that it is done before pre_get_posts
-		$this->wp_enqueue_scripts();
+		if ( is_user_logged_in() )
+		{
+			// our scripts are only useful after a user has logged in
+			// (step 2 cc form and billings info)
+			$this->wp_enqueue_scripts();
+		}
 	}//end init
 
 	/**
@@ -129,7 +142,7 @@ class GO_Recurly
 	 */
 	public function wp_enqueue_scripts()
 	{
-		$script_config = apply_filters( 'go_config', array( 'version' => 1 ), 'go-script-version' );
+		$script_config = apply_filters( 'go_config', array( 'version' => $this->version ), 'go-script-version' );
 
 		wp_register_script(
 			'recurly-js',
@@ -150,6 +163,9 @@ class GO_Recurly
 			TRUE
 		);
 
+		//@TODO break up go-recurly.js so the billing and subscrition cc form
+		// code are in their own files, so they can each only be enqueued
+		// when necessary.
 		wp_register_script(
 			'go-recurly',
 			plugins_url( 'js/go-recurly.js', __FILE__ ),
@@ -280,6 +296,10 @@ class GO_Recurly
 		return $all_caps;
 	}//END user_has_cap
 
+	/**
+	 * callback for the "go_subscriptions_signup" filter. We return the
+	 * signup path if $user is not a subscriber already.
+	 */
 	public function go_subscriptions_signup( $redirect_url, $user, $post_vars )
 	{
 		if ( ! isset( $user->ID ) || 0 >= $user->ID  )
@@ -300,6 +320,10 @@ class GO_Recurly
 		return $this->config['signup_path'];
 	}//END go_subscriptions_signup
 
+	/**
+	 * callback for the "go_subscriptions_signup_form" filter. We return the
+	 * step-2 subscription form if $user_id is valid and is not a subscriber.
+	 */
 	public function go_subscriptions_signup_form( $form, $user_id )
 	{
 		if ( ! $user = get_user_by( 'id', $user_id ) )
