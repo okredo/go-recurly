@@ -80,8 +80,8 @@ class GO_Recurly_Admin
 	public function receive_push()
 	{
 		if (
-			$_SERVER['PHP_AUTH_USER'] != $this->core->config['push_username'] ||
-			$_SERVER['PHP_AUTH_PW'] != $this->core->config['push_password']
+			$_SERVER['PHP_AUTH_USER'] != $this->core->config( 'push_username' ) ||
+			$_SERVER['PHP_AUTH_PW'] != $this->core->config( 'push_password' )
 		)
 		{
 			header( 'WWW-Authenticate: Basic realm="go-recurly"' );
@@ -231,7 +231,7 @@ class GO_Recurly_Admin
 		}
 
 		$url = sprintf(
-			'<a href="' . $this->core->config['recurly_account_base_url'] . '%1$s">%1$s</a>',
+			'<a href="' . $this->core->config( 'recurly_account_base_url' ) . '%1$s">%1$s</a>',
 			esc_attr( $account_code )
 		);
 

@@ -56,7 +56,7 @@ class GO_Recurly_Freebies
 			{
 				// slog the error and report back to the user
 				do_action( 'go_slog', 'go-recurly-freebies', $user->get_error_message() );
-				wp_die( 'We are very sorry. There has been an error completing this transaction: ' . $user->get_error_message() . '. Please contact ' . $this->core->config['support_department'] . '.' );
+				wp_die( 'We are very sorry. There has been an error completing this transaction: ' . $user->get_error_message() . '. Please contact ' . $this->core->config( 'support_department' ) . '.' );
 			}
 			$key = go_softlogin()->get_key( $user->ID );
 			$redirect = site_url( "/connect/$key/?redirect_to=/subscription/thanks/" );
@@ -72,7 +72,7 @@ class GO_Recurly_Freebies
 		{
 			// slog the error and report back to the user (usually this will be when there is something awry with the coupon_code, which can be remedied on Recurly)
 			do_action( 'go_slog', 'go-recurly-freebies', $result->get_error_message() );
-			wp_die( 'We are very sorry. There has been an error completing this transaction: ' . $result->get_error_message() . "\n" . ' Please contact ' . $this->core->config['support_department'] . '.' );
+			wp_die( 'We are very sorry. There has been an error completing this transaction: ' . $result->get_error_message() . "\n" . ' Please contact ' . $this->core->config( 'support_department' ) . '.' );
 		}
 
 		wptix()->delete_ticket( $ticket->ticket );

@@ -10,13 +10,13 @@
  */
 class GO_Recurly
 {
-	public $config = NULL;
 	public $admin = NULL;
 	public $meta_key_prefix = 'go-recurly_';
 	public $version = '1';
 	public $freebies = NULL;
 	public $signup_action = 'go_recurly_freebies_signup';
 
+	private $config = NULL;
 	private $user_profile = NULL;
 	private $recurly_client = NULL;
 	private $registered_pages = array();
@@ -28,13 +28,6 @@ class GO_Recurly
 	 */
 	public function __construct( $config = NULL )
 	{
-		$this->config = apply_filters( 'go_config', $config, 'go-recurly' );
-
-		if ( empty( $this->config ) )
-		{
-			return;
-		}
-
 		// filter this to set recurly subscription-related user caps
 		add_filter( 'user_has_cap', array( $this, 'user_has_cap' ), 10, 3 );
 
@@ -59,7 +52,7 @@ class GO_Recurly
 		}//end else
 
 		// we don't need the rest of the constructor if we're not on Accounts
-		if ( $this->config['accounts_blog_id'] != get_current_blog_id() )
+		if ( $this->config( 'accounts_blog_id' ) != get_current_blog_id() )
 		{
 			return;
 		}
@@ -96,6 +89,38 @@ class GO_Recurly
 			$this->wp_enqueue_scripts();
 		}
 	}//end init
+
+	/**
+	 * returns our current configuration, or a value in the configuration.
+	 *
+	 * @param string $key (optional) key to a configuration value
+	 * @return mixed Returns the config array, or a config value if
+	 *  $key is not NULL, or NULL if $key is specified but isn't set in
+	 *  our config file.
+	 */
+	public function config( $key = NULL )
+	{
+		if ( empty( $this->config ) )
+		{
+			$this->config = apply_filters(
+				'go_config',
+				array(),
+				'go-recurly'
+			);
+
+			if ( empty( $this->config ) )
+			{
+				do_action( 'go_slog', 'go-recurly', 'Unable to load go-subscriptions\' config file' );
+			}
+		}//END if
+
+		if ( ! empty( $key ) )
+		{
+			return isset( $this->config[ $key ] ) ? $this->config[ $key ] : NULL ;
+		}
+
+		return $this->config;
+	}//END config
 
 	/**
 	 * signup action; handles user click-through; allows a user to sign up
@@ -194,7 +219,7 @@ class GO_Recurly
 			'go-recurly-config',
 			'go_recurly_settings',
 			array(
-				'subdomain' => $this->config['recurly_subdomain'],
+				'subdomain' => $this->config( 'recurly_subdomain' ),
 			)
 		);
 	}//end wp_enqueue_scripts
@@ -279,7 +304,7 @@ class GO_Recurly
 		{
 			// by getting from wp_{config['accounts_blog_id']}_capabilities, we get them for the primary blog instead of whichever is running this
 			// @TODO: this makes some assumptions about the table prefix that aren't really square, i.e., we can't do that for primary blog id = 1; that would be "wp_capabilities"
-			$capabilities = get_user_meta( $user_id, 'wp_' . $this->config['accounts_blog_id'] . '_capabilities' );
+			$capabilities = get_user_meta( $user_id, 'wp_' . $this->config( 'accounts_blog_id' ) . '_capabilities' );
 
 			if ( is_array( $capabilities ) )
 			{
@@ -317,7 +342,7 @@ class GO_Recurly
 			return $redirect_url;
 		}
 
-		return $this->config['signup_path'];
+		return $this->config( 'signup_path' );
 	}//END go_subscriptions_signup
 
 	/**
@@ -647,17 +672,17 @@ class GO_Recurly
 		// 4000-0000-0000-0002  - will be declined
 		$sc_atts = shortcode_atts(
 			array(
-				'plan_code' => $this->config['default_recurly_plan_code'],
-				'terms_url' => $this->config['tos_url'],
-				'thankyou_path' => $this->config['thankyou_path'],
-				'support_email' => $this->config['support_email'],
+				'plan_code' => $this->config( 'default_recurly_plan_code' ),
+				'terms_url' => $this->config( 'tos_url' ),
+				'thankyou_path' => $this->config( 'thankyou_path' ),
+				'support_email' => $this->config( 'support_email' ),
 			),
 			$atts
 		);
 
 		if (
 			isset( $_GET['plan_code'] ) &&
-			$_GET['plan_code'] != $this->config['default_recurly_plan_code']
+			$_GET['plan_code'] != $this->config( 'default_recurly_plan_code' )
 		)
 		{
 			// if a plan code is passed in that doesn't match the default plan code, use that
@@ -710,13 +735,13 @@ class GO_Recurly
 			'subscription' => array(
 				'couponCode' => $coupon,
 			),
-			'tos_url' => $this->config['tos_url'],
-			'privacy_policy_url' => $this->config['privacy_policy_url'],
+			'tos_url' => $this->config( 'tos_url' ),
+			'privacy_policy_url' => $this->config( 'privacy_policy_url' ),
 		) );
 
 		$args = array(
 			'signature' => $signature,
-			'url'       => wp_validate_redirect( $sc_atts['thankyou_path'], $this->config['thankyou_path'] ),
+			'url'       => wp_validate_redirect( $sc_atts['thankyou_path'], $this->config( 'thankyou_path' ) ),
 			'plan_code' => $sc_atts['plan_code'],
 			'terms_url' => $sc_atts['terms_url'],
 			'support_email' => $sc_atts['support_email'],
@@ -845,10 +870,10 @@ class GO_Recurly
 			require_once __DIR__ . '/external/recurly-client-php/lib/recurly.php';
 
 			// Required for the API
-			Recurly_Client::$apiKey = $this->config['recurly_api_key'];
+			Recurly_Client::$apiKey = $this->config( 'recurly_api_key' );
 
 			// Optional for Recurly.js:
-			Recurly_js::$privateKey = $this->config['recurly_js_api_key'];
+			Recurly_js::$privateKey = $this->config( 'recurly_js_api_key' );
 
 			$this->recurly_client = new Recurly_Client;
 		}//end if
@@ -1249,7 +1274,7 @@ class GO_Recurly
 			go_subscriptions()->login_user( $current_user->ID, TRUE );
 		}
 
-		wp_redirect( $this->config['thankyou_path'] );
+		wp_redirect( $this->config( 'thankyou_path' ) );
 		exit;
 	}//end thankyou
 }//end class
