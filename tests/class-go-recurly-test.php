@@ -46,11 +46,6 @@ class GO_Recurly_Test extends WP_UnitTestCase
 		{
 			var_dump( $e );
 		}
-
-		// override go-subscriptions' configuration. because the way it's
-		// loaded by go-subscriptions, we can't just use our own filter,
-		// but have to set the singleton's config class var
-		go_subscriptions()->config['subscriptions_blog_id'] = 4;
 	}//END flush_cache
 
 	/**
