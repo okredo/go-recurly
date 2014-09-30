@@ -1272,7 +1272,7 @@ class GO_Recurly
 
 		// we only want to set a durable login on a user who is already
 		// logged in at this point
-		if ( $current_user )
+		if ( $current_user && 0 < $current_user->ID )
 		{
 			// they were logged in when signing up and they were redirected
 			// here and the account_code matches.  Safe to login durable.
