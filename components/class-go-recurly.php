@@ -329,20 +329,20 @@ class GO_Recurly
 	{
 		if ( ! isset( $user->ID ) || 0 >= $user->ID  )
 		{
-			return $redirect_url;
+			return add_query_arg( $post_vars, $redirect_url );
 		}
 
 		if ( ! $user = get_user_by( 'id', $user->ID ) )
 		{
-			return $redirect_url;
+			return add_query_arg( $post_vars, $redirect_url );
 		}
 
 		if ( user_can( $user, 'subscribe' ) )
 		{
-			return $redirect_url;
+			return add_query_arg( $post_vars, $redirect_url );
 		}
 
-		return $this->config( 'signup_path' );
+		return add_query_arg( $post_vars, $this->config( 'signup_path' ) );
 	}//END go_subscriptions_signup
 
 	/**
