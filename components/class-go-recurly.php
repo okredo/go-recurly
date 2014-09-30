@@ -82,12 +82,7 @@ class GO_Recurly
 
 		// doing this here rather than on the wp_enqueue_scripts hook so
 		// that it is done before pre_get_posts
-		if ( is_user_logged_in() )
-		{
-			// our scripts are only useful after a user has logged in
-			// (step 2 cc form and billings info)
-			$this->wp_enqueue_scripts();
-		}
+		$this->wp_enqueue_scripts();
 	}//end init
 
 	/**
@@ -329,20 +324,20 @@ class GO_Recurly
 	{
 		if ( ! isset( $user->ID ) || 0 >= $user->ID  )
 		{
-			return $redirect_url;
+			return add_query_arg( $post_vars, $redirect_url );
 		}
 
 		if ( ! $user = get_user_by( 'id', $user->ID ) )
 		{
-			return $redirect_url;
+			return add_query_arg( $post_vars, $redirect_url );
 		}
 
 		if ( user_can( $user, 'subscribe' ) )
 		{
-			return $redirect_url;
+			return add_query_arg( $post_vars, $redirect_url );
 		}
 
-		return $this->config( 'signup_path' );
+		return add_query_arg( $post_vars, $this->config( 'signup_path' ) );
 	}//END go_subscriptions_signup
 
 	/**
@@ -667,6 +662,16 @@ class GO_Recurly
 	 */
 	public function subscription_form( $user, $atts )
 	{
+		// use get vars from go-subscriptions if applicable
+		if ( isset( $_GET['go-subscriptions'] ) && is_array( $_GET['go-subscriptions'] ) )
+		{
+			$get_vars = $_GET['go-subscriptions'];
+		}
+		else
+		{
+			$get_vars = $_GET;
+		}
+
 		// test cc #'s:
 		// 4111-1111-1111-1111  -  will succeed
 		// 4000-0000-0000-0002  - will be declined
@@ -681,12 +686,12 @@ class GO_Recurly
 		);
 
 		if (
-			isset( $_GET['plan_code'] ) &&
-			$_GET['plan_code'] != $this->config( 'default_recurly_plan_code' )
+			isset( $get_vars['plan_code'] ) &&
+			$get_vars['plan_code'] != $this->config( 'default_recurly_plan_code' )
 		)
 		{
 			// if a plan code is passed in that doesn't match the default plan code, use that
-			$sc_atts['plan_code'] = trim( $_GET['plan_code'] );
+			$sc_atts['plan_code'] = trim( $get_vars['plan_code'] );
 		}
 		else
 		{
@@ -698,10 +703,10 @@ class GO_Recurly
 			}
 		}//end else
 
-		if ( ! $user && isset( $_GET['email'] ) && is_email( $_GET['email'] ) )
+		if ( ! $user && isset( $get_vars['email'] ) && is_email( $get_vars['email'] ) )
 		{
 			// we will load the object so that we can see if they already have a recurly account code
-			$user->user_email = $_GET['email'];
+			$user->user_email = $get_vars['email'];
 		}//end if
 
 		$this->recurly_client();
