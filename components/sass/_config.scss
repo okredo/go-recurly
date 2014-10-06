@@ -1,0 +1,28 @@
+$serif: "proxima-nova", "Helvetica Neue", "Helvetica", Helvetica, Arial, sans-serif;
+
+$small: 640px;
+$medium: 641px;
+$large: 960px;
+
+$global-radius: 6px;
+
+@mixin subtext {
+	font-family: $serif;
+	font-size: 18px;
+	font-weight: 400;
+	line-height: 20px;
+}
+
+@mixin action-button {
+	background-color: #ff6b00;
+	border: 0;
+	background-image: none;
+	color: #fff;
+	padding: 10px 20px;
+	text-transform: none;
+	width: auto;
+
+	&:hover {
+		background-color: darker( #ff6800, 10% );
+	}
+}

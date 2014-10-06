@@ -1,0 +1,544 @@
+.recurly {
+	display: block;
+	max-width: 100%;
+	position: relative;
+	width: 502px;
+
+	&.subscribe {
+		a {
+			padding: 0;
+		}
+	}
+
+	button.submit {
+		background-color: #045d90;
+		background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#057dc2), to(#022d46));
+		background-image: -webkit-linear-gradient(top, #057dc2, #034d77);
+		background-image: -o-linear-gradient(top, #057dc2, #034d77);
+		background-image: linear-gradient(to bottom, #057dc2, #034d77);
+		background-image: -moz-linear-gradient(top, #057dc2, #034d77);
+		background-repeat: repeat-x;
+		border: 1px solid #022d46;
+		border-radius: $global-radius;
+		box-shadow: 1px 1px 5px 0 rgba(0, 0, 0, .25);
+		color: #fff;
+		font-weight: normal;
+		height: auto;
+		padding: 4px 11px 6px;
+		text-shadow: 0 -1px 0 rgba(0, 0, 0, .25);
+
+		&:hover {
+			background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#056da9), to(#033d5e));
+			background-image: -webkit-linear-gradient(top, #056da9, #033d5e);
+			background-image: -o-linear-gradient(top, #056da9, #033d5e);
+			background-image: linear-gradient(to bottom, #056da9, #033d5e);
+			background-image: -moz-linear-gradient(top, #056da9, #033d5e);
+			border: 1px solid #010d14;
+			color: #fff;
+		}
+
+		&:active {
+			-moz-box-shadow: inset 0 2px 4px rgba(0, 0, 0, .25), 0 1px 2px rgba(0, 0, 0, .05);
+			-webkit-box-shadow: inset 0 2px 4px rgba(0, 0, 0, .25), 0 1px 2px #f00;
+			box-shadow: inset 0 2px 3px rgba(0, 0, 0, .25), 0 2px 2px rgba(0, 0, 0, .1);
+		}
+
+		&.disabled,
+		&[disabled] {
+			background-color: #c3c3c3;
+			background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#ddd), to(#9d9d9d));
+			background-image: -webkit-linear-gradient(top, #ddd, #9d9d9d);
+			background-image: -o-linear-gradient(top, #ddd, #9d9d9d);
+			background-image: linear-gradient(to bottom, #ddd, #9d9d9d);
+			background-image: -moz-linear-gradient(top, #ddd, #9d9d9d);
+			border: 1px solid #9d9d9d;
+			border-radius: $global-radius;
+			box-shadow: none;
+			color: #555;
+			height: auto;
+			padding: 4px 11px 6px;
+			text-shadow: rgba(255, 255, 255, .57) 0 1px 0;
+		}
+	}
+
+	input[type=text] {
+		background: #fff;
+		border: 1px solid #a0a0a5;
+		box-shadow: inset 0 2px 3px rgba(0, 0, 0, .10);
+		display: block;
+		font-family: inherit;
+		font-size: 14px;
+		height: 22px;
+		padding: 5px;
+	}
+
+	.accepted_cards {
+		right: 0;
+		top: 10px;
+	}
+
+	.free_trial {
+		padding-left: 10px;
+		position: static;
+	}
+
+	.cost,
+	.discount {
+		font-size: 16px;
+		text-align: right;
+	}
+
+	.subscription {
+		border-radius: 9px 9px 0 0;
+		overflow: hidden;
+		padding-top: 20px;
+	}
+
+	.plan {
+		.name {
+			font-size: 22px;
+			line-height: 26px;
+			margin-bottom: 10px;
+			padding-left: 0;
+
+			@include min-screen( $medium ) {
+				font-size: 32px;
+				line-height: 36px;
+				margin-bottom: 0;
+			}
+		}
+
+		.recurring_cost {
+			float: none;
+			padding-left: 0;
+			padding-top: 10px;
+			text-align: left;
+
+			@include min-screen( $medium ) {
+				clear: none;
+				float: right;
+				padding-right: 10px;
+				text-align: right;
+			}
+
+			.cost {
+				font-size: 30px;
+				text-align: left;
+
+				@include min-screen( $medium ) {
+					text-align: right;
+				}
+			}
+		}
+	}
+
+	.due_now {
+		background: #045d90;
+		color: #fff;
+		height: 52px;
+		line-height: 52px;
+		margin-bottom: 5px;
+		padding: 0 15px;
+		text-shadow: none;
+		width: 100%;
+
+		@include min-screen( $medium ) {
+			width: 472px;
+		}
+
+		.title {
+			font-size: 14px;
+
+			@include min-screen( $medium ) {
+				font-size: 29px;
+			}
+		}
+
+		.cost {
+			font-size: 20px;
+			font-weight: normal;
+			text-shadow: none;
+
+			@include min-screen( $medium ) {
+				font-size: 33px;
+			}
+		}
+	}
+
+	.coupon {
+		height: auto;
+		padding: 20px 20px 20px 0;
+		position: relative;
+
+		@include min-screen( $medium ) {
+			height: 60px;
+		}
+
+		.description {
+			clear: both;
+			display: none;
+			float: none;
+			line-height: 20px;
+			margin-left: 0;
+
+			@include min-screen( $medium ) {
+				float: left;
+				margin-left: 20px;
+			}
+		}
+
+		&.invalid .description,
+		&.valid  .description {
+			display: block;
+		}
+
+		.discount {
+			position: absolute;
+			right: 0;
+			top: 50px;
+
+			@include min-screen( $medium ) {
+				position: static;
+			}
+		}
+
+		.check {
+			background: #045d90 url( '../img/coupon_check_white.png' ) no-repeat center center;
+			background: url( '../img/coupon_check_white.png' ) no-repeat center center, -webkit-gradient(linear, 0 0, 0 100%, from(#057dc2), to(#022d46));
+			background: url( '../img/coupon_check_white.png' ) no-repeat center center, -webkit-linear-gradient(top, #057dc2, #034d77);
+			background: url( '../img/coupon_check_white.png' ) no-repeat center center, -o-linear-gradient(top, #057dc2, #034d77);
+			background: url( '../img/coupon_check_white.png' ) no-repeat center center, linear-gradient(to bottom, #057dc2, #034d77);
+			background: url( '../img/coupon_check_white.png' ) no-repeat center center, -moz-linear-gradient(top, #057dc2, #034d77);
+			background-color: #045d90;
+			border: 1px solid #022d46;
+			border-radius: 15px;
+			float: left;
+			height: 26px;
+			margin: 3px 0 1px 10px;
+			width: 26px;
+
+			&:hover {
+				background: #045d90 url( '../img/coupon_check_white.png' ) no-repeat center center;
+				background: url( '../img/coupon_check_white.png' ) no-repeat center center, -webkit-gradient(linear, 0 0, 0 100%, from(#056da9), to(#033d5e));
+				background: url( '../img/coupon_check_white.png' ) no-repeat center center, -webkit-linear-gradient(top, #056da9, #033d5e);
+				background: url( '../img/coupon_check_white.png' ) no-repeat center center, -o-linear-gradient(top, #056da9, #033d5e);
+				background: url( '../img/coupon_check_white.png' ) no-repeat center center, linear-gradient(to bottom, #056da9, #033d5e);
+				background: url( '../img/coupon_check_white.png' ) no-repeat center center, -moz-linear-gradient(top, #056da9, #033d5e);
+				border: 1px solid #010d14;
+			}
+
+			&:active {
+				box-shadow: inset 0 2px 3px rgba(0, 0, 0, .25), 0 2px 2px rgba(0, 0, 0, .1);
+			}
+		}
+
+		&.invalid {
+			.coupon_code {
+				background: #fee;
+				border-color: #a55;
+				color: #311;
+			}
+		}
+
+		.coupon_code {
+			width: 140px;
+
+			.error {
+				left: 300px;
+			}
+		}
+	}
+
+	.error {
+		background: #ffc;
+		border: 1px solid #ba1;
+		border-radius: $global-radius;
+		box-shadow: 3px 5px 5px 0 rgba(0, 0, 0, .10);
+		color: #000;
+		font-size: 13px;
+		line-height: 22px;
+		padding: 5px;
+		vertical-align: middle;
+	}
+
+	.server_errors {
+		text-shadow: none;
+	}
+
+	.contact_info,
+	.billing_info,
+	.accept_tos {
+		border-top: 1px solid #e8e8e8;
+		clear: left;
+		overflow: visible;
+		padding: 20px 0 0;
+		width: 100%;
+
+		@include min-screen( $medium ) {
+			width: 362px;
+		}
+
+		.title {
+			font-weight: normal;
+			padding-bottom: 5px;
+			text-shadow: none;
+		}
+	}
+
+	.accept_tos {
+		padding-top: 10px;
+
+		.field {
+			.error {
+				display: block;
+				position: static;
+			}
+		}
+	}
+
+	.billing_info {
+		padding-top: 15px;
+
+		select,
+		option {
+			font-size: 14px;
+			line-height: 19px;
+			padding: 3px;
+		}
+
+		select {
+			-webkit-appearance: menulist-button;
+			border: 1px solid #b1b1b1;
+			height: 34px;
+			margin-top: -4px;
+		}
+	}
+
+	.contact_info {
+		background: none;
+		border-top: 0;
+		padding-bottom: 10px;
+	}
+
+	.card_cvv {
+		margin-bottom: 10px;
+		width: 100%;
+
+		@include min-screen( $large ) {
+			width: 362px;
+		}
+	}
+
+	.only_zipstreet,
+	.only_zip {
+		.zip.field {
+			clear: left;
+			margin-left: 0;
+		}
+	}
+
+	.field {
+		height: auto;
+		margin-bottom: 10px;
+		width: 100%;
+
+		@include min-screen( $medium ) {
+			width: 362px;
+		}
+
+		&.invalid {
+			.placeholder {
+				color: #a77;
+			}
+		}
+
+		&.state_zip {
+			margin-bottom: 15px;
+		}
+
+		&.state {
+			position: relative;
+			top: 5px;
+			width: 55%;
+
+			@include min-screen( $medium ) {
+				width: 242px;
+			}
+
+			.error {
+				left: 362px;
+				top: -5px;
+			}
+
+			select {
+				margin-bottom: 0;
+			}
+		}
+
+		&.zip {
+			margin-left: 5%;
+			width: 40%;
+
+			@include min-screen( $medium ) {
+				margin-left: 20px;
+				width: 100px;
+			}
+
+			input[type=text] {
+				width: 100%;
+			}
+		}
+
+		&.country {
+			width: 100%;
+
+			@include min-screen( $medium ) {
+				width: 282px;
+			}
+		}
+
+		&.last_name,
+		&.first_name {
+			width: 100%;
+
+			@include min-screen( $medium ) {
+				width: 165px;
+			}
+
+			input[type=text] {
+				width: 100%;
+			}
+
+			.error {
+				left: 350px;
+			}
+		}
+
+		&.last_name {
+			margin-left: 0;
+
+			@include min-screen( $medium ) {
+				margin-left: 30px;
+			}
+		}
+
+		&.card_number {
+			width: 100%;
+
+			@include min-screen( $medium ) {
+				width: 280px;
+			}
+
+			input[type=text] {
+				width: 100%;
+
+				@include min-screen( $medium ) {
+					width: 269px;
+				}
+			}
+
+			.error {
+				left: 350px;
+			}
+		}
+
+		&.cvv {
+			margin-left: 0;
+			width: 100%;
+
+			@include min-screen( $medium ) {
+				margin-left: 10px;
+				width: 60px;
+			}
+
+			input[type=text] {
+				width: 100%;
+			}
+		}
+
+		&.expires {
+			margin-bottom: 5px;
+
+			width: 100%;
+
+			@include min-screen( $medium ) {
+				width: 362px;
+			}
+
+			input[type=text] {
+				//width: 288px;
+			}
+
+			.title {
+				font-size: 16px;
+				margin-right: 10px;
+				margin-right: 1%;
+				width: 20%;
+			}
+
+			.month {
+				margin-right: 1%;
+				width: 195px;
+				width: 55%;
+
+				input[type=text] {
+					//width: 108px;
+				}
+			}
+
+			.year {
+				margin-left: 8px;
+				margin-left: 0;
+				width: 73px;
+				width: 23%;
+
+				input[type=text] {
+					//width: 48px;
+				}
+			}
+		}
+
+		input[type=text] {
+			height: 34px;
+			margin-bottom: 0;
+			width: 100%;
+		}
+
+		.error {
+			border-top-left-radius: 0;
+			border-top-right-radius: 0;
+			box-shadow: none;
+			margin-left: 0;
+			min-width: 0;
+			position: static;
+			white-space: nowrap;
+			z-index: 1337;
+
+			@include min-screen( $medium ) {
+				border-top-left-radius: $global-radius;
+				border-top-right-radius: $global-radius;
+				left: 100%;
+				margin-left: 20px;
+				min-width: 128px;
+				position: absolute;
+				top: 0;
+			}
+		}
+
+		.placeholder {
+			line-height: 34px;
+			padding-left: 10px;
+		}
+	}
+
+	.footer {
+		border-radius: 0 0 9px 9px;
+		clear: both;
+		margin: 0;
+		padding: 0;
+	}
+
+	&.submitting .footer {
+		background: url( '../js/external/recurly-js/themes/default/images/submitting.gif' ) no-repeat 180px 28px;
+	}
+}

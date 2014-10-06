@@ -1,0 +1,28 @@
+// subscriptions payment page
+#go-recurly-payment {
+	#go-recurly-form {
+
+		@include min-screen( 960px ) {
+			float: left;
+		}
+	}
+
+	#marketing-box {
+		max-width: 472px;
+
+		@include min-screen( 960px ) {
+			float: left;
+			margin-top: 226px;
+			max-width: 320px;
+		}
+
+		h1 {
+			font-family: adelle, Georgia, 'Times New Roman', Times, serif;
+			font-weight: 300;
+		}
+
+		ul {
+			margin: 0 0 0 1.275em;
+		}
+	}
+}

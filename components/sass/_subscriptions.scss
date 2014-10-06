@@ -1,0 +1,61 @@
+.go-recurly {
+	margin-top: 2rem;
+
+	table {
+		width: 100%;
+	}
+
+	.text-center {
+		text-align: center;
+	}
+
+	.text-left {
+		text-align: left;
+	}
+
+	.text-right {
+		text-align: right;
+	}
+
+	.message {
+		background: #eee;
+		border-radius: $global-radius;
+		color: #333;
+		padding: 1em;
+		text-shadow: 0 1px 0 #fff;
+	}
+}
+
+// Subscriptions List
+
+.go-recurly-list {
+	.status-active {
+		.status {
+			color: #58b300;
+		}
+	}
+
+	.trial-expired .subscription-trial-start,
+	.trial-expired .subscription-trial-expires,
+	.status-canceled,
+	.status-expired {
+		color: #999;
+	}
+}
+
+#subscription-cancel,
+#subscription-invoice {
+	display: none;
+}
+
+.logged-in #go-recurly-form .email {
+	display: none;
+}
+
+#subscription-cancel-personal-li {
+	display: none;
+}
+
+#cancel-errors {
+	color: #f00;
+}
