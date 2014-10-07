@@ -66,6 +66,9 @@ class GO_Recurly
 			add_action( 'go_user_profile_email_updated', array( $this, 'go_user_profile_email_updated' ), 10, 2 );
 		}
 
+		// for bstat tracking of new subscribers
+		add_action( 'go_subscriptions_new_subscriber', array( $this, 'go_subscriptions_new_subscriber' ) );
+
 		add_filter( 'go_remote_identity_nav', array( $this, 'go_remote_identity_nav' ), 12, 2 );
 		add_filter( 'go_user_profile_screens', array( $this, 'go_user_profile_screens' ) );
 	}//end __construct
@@ -373,6 +376,86 @@ class GO_Recurly
 	}//end detect_coupon
 
 	/**
+	 * track new subscriptions
+	 *
+	 * @param WP_User $current_user
+	*/
+	public function go_subscriptions_new_subscriber( $current_user )
+	{
+		if ( ! ( $current_user instanceof WP_User ) )
+		{
+			return;
+		}
+
+		if ( $subscription_meta = $this->get_subscription_meta( $current_user->ID ) )
+		{
+			$subscription_meta_check_keys = array_filter( $subscription_meta );
+		}
+
+		// guest signups won't contain subscription meta, but the
+		// new subscriber hook is still invoked
+		if ( empty( $subscription_meta_check_keys ) )
+		{
+			return; // nothing to track here
+		}
+
+		$data = array(
+			'action'      => 'start',
+			'user_id'     => $current_user->ID,
+			'info'        => array(
+				'account_code'           => $this->get_account_code( $current_user->ID ),
+				'subscription_plan_code' => $subscription_meta['subscription']['sub_plan_code'],
+				'coupon_code'            => $subscription_meta['subscription']['sub_coupon_code'],
+			),
+		);
+
+		do_action( 'bstat_insert', $this->footstep( $data ) );
+	}//end go_subscriptions_new_subscriber
+
+	/**
+	 * track subscription cancellations
+	 *
+	 * @param int $user_id WP User ID - note: not User object
+	*/
+	public function track_subscriptions_cancel( $user_id )
+	{
+		$subscription_meta = $this->get_user_meta( $user_id );
+
+		// the user's Recurly account code & the subscription start date
+		$data = array(
+			'action'  => 'cancel',
+			'user_id' => $user_id,
+			'info'    => array(
+				'account_code' => $subscription_meta['account_code'],
+				'start_date'   => $subscription_meta['subscription']['sub_activated_at'],
+			),
+		);
+
+		do_action( 'bstat_insert', $this->footstep( $data ) );
+	}//end track_subscriptions_cancel
+
+	/**
+	 * prepare all required data for writing to bStat
+	 *
+	 * @param $data data to be inserted
+	 * @return object $footstep
+	*/
+	public function footstep( $data )
+	{
+		// there're more elements in a footstep, but the rest will
+		// be filled out by bstat
+		$footstep = (object) array(
+			'post'      => $this->config( 'go_recurly_tracking_id' ),
+			'user'      => $data['user_id'],
+			'component' => 'go-recurly',
+			'action'    => $data['action'],
+			'info'      => implode( '|', $data['info'] ),
+		);
+
+		return $footstep;
+	}//end footstep
+
+	/**
 	 * builds a subscription nav section to be inserted into a user's
 	 * remote identity payload
 	 *
@@ -608,6 +691,8 @@ class GO_Recurly
 		}//end foreach
 
 		do_action( 'go_recurly_subscriptions_cancel', $user_id, $subscriptions, $terminate_refund, $return );
+
+		$this->track_subscriptions_cancel( $user_id );
 
 		return $return;
 	}//end cancel_subscription
