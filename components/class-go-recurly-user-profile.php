@@ -140,8 +140,8 @@ class GO_Recurly_User_Profile
 			'subscription'          => $subscription,
 			'subscription_meta'     => $subscription_meta,
 			'url'                   => '/members/' . go_user_profile()->displayed_user->ID . '/subscription',
-			'subscription_provider' => $this->core->config['subscription_provider'],
-			'survey_url'            => $this->core->config['survey_url'],
+			'subscription_provider' => $this->core->config( 'subscription_provider' ),
+			'survey_url'            => $this->core->config( 'survey_url' ),
 		);
 
 		if ( isset( $_GET['confirm'] ) )
@@ -272,7 +272,7 @@ class GO_Recurly_User_Profile
 			// this page returns a 404 file not found.  Well, that's not accurate.  Return a 200 OK
 			header( 'HTTP/1.0 200 OK' );
 			header( 'Content-Type: application/pdf' );
-			header( 'Content-Disposition: attachment;filename="' . $this->core->config['invoice_filename_prefix'] . $invoice->created_at->format( 'Y-m-d' ) . '.pdf"' );
+			header( 'Content-Disposition: attachment;filename="' . $this->core->config( 'invoice_filename_prefix' ) . $invoice->created_at->format( 'Y-m-d' ) . '.pdf"' );
 
 			$pdf = Recurly_Invoice::getInvoicePdf( $invoice_id, 'en-US' );
 		}//end try
