@@ -44,7 +44,7 @@ class GO_Recurly
 
 			// @TODO: handle coupon detection in JS
 			$this->detect_coupon();
-		}//end else
+		}//end if
 
 		// we don't need the rest of the constructor if we're not on Accounts
 		if ( $this->config( 'accounts_blog_id' ) != get_current_blog_id() )
