@@ -34,12 +34,7 @@ class GO_Recurly
 		add_filter( 'go_subscriptions_signup', array( $this, 'go_subscriptions_signup' ), 10, 3 );
 		add_filter( 'go_subscriptions_signup_form', array( $this, 'go_subscriptions_signup_form' ), 10, 2 );
 
-		if ( is_admin() )
-		{
-			// instantiate freebies to get the freebies admin menu
-			$this->freebies();
-		}
-		else
+		if ( ! is_admin() )
 		{
 			add_action( 'init', array( $this, 'init' ) );
 
@@ -49,7 +44,7 @@ class GO_Recurly
 
 			// @TODO: handle coupon detection in JS
 			$this->detect_coupon();
-		}//end else
+		}//end if
 
 		// we don't need the rest of the constructor if we're not on Accounts
 		if ( $this->config( 'accounts_blog_id' ) != get_current_blog_id() )
@@ -60,6 +55,9 @@ class GO_Recurly
 		if ( is_admin() )
 		{
 			$this->admin();
+
+			// instantiate freebies to get the freebies admin menu
+			$this->freebies();
 		}
 		else
 		{
