@@ -397,6 +397,16 @@
 			}
 		}
 
+		&.address1,
+		&.address2,
+		&.city,
+		&.state,
+		&.zip {
+			.error {
+				margin-left: 8px;
+			}
+		}
+
 		&.last_name,
 		&.first_name {
 			width: 100%;
@@ -419,6 +429,11 @@
 
 			@include min-screen( $medium ) {
 				margin-left: 30px;
+			}
+
+
+			.error {
+				left: 155px;
 			}
 		}
 
