@@ -159,7 +159,7 @@ class GO_Recurly_Freebies_Admin
 			'DATE_YEAR' => date( 'Y' ),
 			'END_DATE'  => $expire->format( 'F dS, Y' ),
 		);
-		$email_template = 'alerts-beta';
+		$email_template = 'freebies-beta';
 
 		$headers = array();
 		$headers[] = 'Content-Type: text/html';
