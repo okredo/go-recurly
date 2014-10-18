@@ -145,10 +145,6 @@ class GO_Recurly_Freebies_Admin
 	 */
 	public function invite( $email, $subscription_data )
 	{
-		// get date subscription ends to insert into email template
-		$now = new DateTime;
-		$expire = $now->modify( $subscription_data['free_period'] );
-
 		$subscription_data['email'] = $email;// add email field to the free period and coupon code info, to be persisted in WPTix
 		$ticket_name = wptix()->generate_md5();
 		wptix()->register_ticket( go_recurly()->signup_action, $ticket_name, $subscription_data );
@@ -157,7 +153,6 @@ class GO_Recurly_Freebies_Admin
 			'URL' => $url,
 			'STYLESHEET_URL' => preg_replace( '/^https:/', 'http:', get_stylesheet_directory_uri() ),
 			'DATE_YEAR' => date( 'Y' ),
-			'END_DATE'  => $expire->format( 'F dS, Y' ),
 		);
 		$email_template = 'freebies-beta';
 
