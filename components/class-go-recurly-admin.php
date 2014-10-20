@@ -218,7 +218,7 @@ class GO_Recurly_Admin
 	 	?>
 	 	<tr class="form-field">
 			<th><?php echo esc_html( $key ); ?></th>
-			<td><code><?php echo ( 'account_code' == $key ? wp_kses( $value ) : esc_html( $value ) ); ?></code></td>
+			<td><code><?php echo ( 'account_code' == $key ? wp_kses( $value, array() ) : esc_html( $value ) ); ?></code></td>
 		</tr>
 		<?php
 	}//end show_user_profile_row
