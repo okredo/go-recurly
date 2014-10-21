@@ -23,8 +23,8 @@ if ( file_exists( $bootstrap ) )
 			'go-user-profile/go-user-profile.php',
 			'go-recurly/go-recurly.php',
 		),
-		'template' => 'vip/gigaom4-child',
-		'stylesheet' => 'vip/gigaom4-child',
+		'template' => 'vip/gigaom5',
+		'stylesheet' => 'vip/gigaom5',
 	);
 
 	// we need to declare this method so nonce checking will work
