@@ -214,11 +214,14 @@ class GO_Recurly_Admin
 		if ( 'account_code' == $key )
 		{
 			$value = $this->get_recurly_user_url( $value );
+			$allowed_html = array(
+				'a' => array( 'href' => array(), 'title' => array() )
+			);
 		}
 	 	?>
 	 	<tr class="form-field">
 			<th><?php echo esc_html( $key ); ?></th>
-			<td><code><?php echo ( 'account_code' == $key ) ? wp_kses( $value, array() ) : esc_html( $value ); ?></code></td>
+			<td><code><?php echo ( 'account_code' == $key ) ? wp_kses( $value, $allowed_html ) : esc_html( $value ); ?></code></td>
 		</tr>
 		<?php
 	}//end show_user_profile_row
@@ -227,7 +230,7 @@ class GO_Recurly_Admin
 	{
 		if ( empty( $account_code ) )
 		{
-			return;
+			return '';
 		}
 
 		$url = sprintf(
