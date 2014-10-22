@@ -708,7 +708,7 @@ class GO_Recurly
 
 		if ( empty( $account_code ) )
 		{
-			do_action( 'go_slog', 'go-recurly', 'update_email(): no recurly account code', $user_id );
+			do_action( 'go_slog', 'go-recurly', 'update_email(): no recurly account code', $user->ID );
 			return; // nothing to update
 		}
 
