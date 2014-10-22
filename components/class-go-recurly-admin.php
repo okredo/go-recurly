@@ -227,7 +227,7 @@ class GO_Recurly_Admin
 	{
 		if ( empty( $account_code ) )
 		{
-			return;
+			return '';
 		}
 
 		$url = sprintf(
