@@ -334,13 +334,7 @@ class GO_Recurly
 		}
 
 		// do not filter admins and subscribers
-		if (
-			user_can( $user, 'sub_state_active' ) ||
-			user_can( $user, 'subscriber-enterprise' ) ||
-			user_can( $user, 'subscriber-lifetime' ) ||
-			user_can( $user, 'manage_options' ) ||
-			user_can( $user, 'manage_network_options' )
-		)
+		if ( user_can( $user, 'subscriber' ) )
 		{
 			return add_query_arg( $post_vars, $redirect_url );
 		}
