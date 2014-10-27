@@ -306,7 +306,11 @@ class GO_Recurly
 			{
 				foreach ( $capabilities as $capability )
 				{
-					if ( isset( $capability['subscriber-lifetime'] ) )
+					if (
+						isset( $capability['subscriber-lifetime'] ) ||
+						isset( $capability['administrator'] ) ||
+						isset( $capability['contributor'] )
+					)
 					{
 						$all_caps['subscriber'] = TRUE;
 					}
@@ -353,7 +357,7 @@ class GO_Recurly
 			return $form;
 		}
 
-		if ( user_can( $user, 'subscribe' ) )
+		if ( user_can( $user, 'subscriber' ) )
 		{
 			return $form;
 		}
