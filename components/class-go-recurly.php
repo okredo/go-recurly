@@ -1035,7 +1035,7 @@ class GO_Recurly
 				return $user;
 			}
 
-			do_action( 'go_slog', 'go-recurly', 'failed to find a user with recurly account code: ' . $account_code, (string) $notification->account );
+			do_action( 'go_slog', 'go-recurly', 'failed to find a user with recurly account code: ' . $account_code, $this->prep_notification_for_log( $notification ) );
 		}//END if
 		elseif ( ! empty( $notification->account->email ) )
 		{
@@ -1062,7 +1062,7 @@ class GO_Recurly
 
 			if ( is_wp_error( $user_id ) )
 			{
-				do_action( 'go_slog', 'go-recurly', 'failed to create a new guest user with email: ' . $email, array( $notification, $user_id ) );
+				do_action( 'go_slog', 'go-recurly', 'failed to create a new guest user with email: ' . $email, array( $this->prep_notification_for_log( $notification ), $user_id ) );
 				return FALSE;
 			}
 
@@ -1076,7 +1076,7 @@ class GO_Recurly
 
 			if ( ! $ret || is_wp_error( $ret ) )
 			{
-				do_action( 'go_slog', 'go-recurly', 'failed to sync new user recurly account code to recurly!!!', array( $notification, $ret ) );
+				do_action( 'go_slog', 'go-recurly', 'failed to sync new user recurly account code to recurly!!!', array( $this->prep_notification_for_log( $notification ), $ret ) );
 				return FALSE;
 			}
 
@@ -1370,6 +1370,28 @@ class GO_Recurly
 		wp_redirect( $this->config( 'thankyou_path' ) );
 		exit;
 	}//end thankyou
+
+	/**
+	 * Prepare a notification object for logging by converting SimpleXMLElement values back to XML strings
+	 */
+	public function prep_notification_for_log( $notification )
+	{
+		$xml_keys = array(
+			'account',
+			'subscription',
+			'transaction',
+		);
+
+		foreach ( $notification as $key => $value )
+		{
+			if ( in_array( $key, $xml_keys ) && 'SimpleXMLElement' == get_class( $value ) )
+			{
+				$notification->$key = $value->asXML();
+			} // END if
+		} // END foreach
+
+		return $notification;
+	} // END prep_notification_for_log
 }//end class
 
 /**
