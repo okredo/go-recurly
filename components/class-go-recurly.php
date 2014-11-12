@@ -1323,8 +1323,8 @@ class GO_Recurly
 			return new WP_Error( 'go_recurly_freebies_subscribe_recurly_sync_error', 'failed to sync new user recurly account code to recurly when attempting to subscribe user ' . $user->user_email );
 		}
 
-		// billed, so send welcome email!
-		go_subscriptions()->send_welcome_email( $user->ID, $meta_vals );
+		// billed, can send welcome email
+		go_subscriptions()->send_welcome_email( $user->ID, $meta_vals, TRUE ); // boolean means ticket user will be logged back in after generating welcome
 
 		return TRUE;
 	} // END subscribe_free_period
