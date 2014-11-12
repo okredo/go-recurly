@@ -32,7 +32,7 @@ class GO_Recurly
 		add_filter( 'user_has_cap', array( $this, 'user_has_cap' ), 10, 3 );
 
 		add_filter( 'go_subscriptions_signup', array( $this, 'go_subscriptions_signup' ), 10, 3 );
-		add_filter( 'go_subscriptions_signup_form', array( $this, 'go_subscriptions_signup_form' ), 10, 2 );
+		add_filter( 'go_subscriptions_signup_form', array( $this, 'go_subscriptions_signup_form' ), 10, 3 );
 
 		if ( ! is_admin() )
 		{
@@ -349,8 +349,13 @@ class GO_Recurly
 	/**
 	 * callback for the "go_subscriptions_signup_form" filter. We return the
 	 * step-2 subscription form if $user_id is valid and is not a subscriber.
+	 *
+	 * @param string $form the current signup form to use
+	 * @param int the WP user id
+	 * @param array $get_vars
+	 * @return string the form to use
 	 */
-	public function go_subscriptions_signup_form( $form, $user_id )
+	public function go_subscriptions_signup_form( $form, $user_id, $get_vars )
 	{
 		if ( ! $user = get_user_by( 'id', $user_id ) )
 		{
