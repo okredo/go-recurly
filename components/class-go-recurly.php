@@ -1316,12 +1316,15 @@ class GO_Recurly
 		}
 
 		// synchronize recurly data into usermeta
-		$ret = $this->admin()->recurly_sync( $user );
+		$meta_vals = $this->admin()->recurly_sync( $user );
 
-		if ( ! $ret || is_wp_error( $ret ) )
+		if ( ! $meta_vals || is_wp_error( $meta_vals ) )
 		{
 			return new WP_Error( 'go_recurly_freebies_subscribe_recurly_sync_error', 'failed to sync new user recurly account code to recurly when attempting to subscribe user ' . $user->user_email );
 		}
+
+		// billed, so send welcome email!
+		go_subscriptions()->send_welcome_email( $user->ID, $meta_vals );
 
 		return TRUE;
 	} // END subscribe_free_period
