@@ -293,6 +293,11 @@ class GO_Recurly
 				$all_caps['login_with_key'] = TRUE;
 			}
 		}//end if
+		elseif ( ! empty( $all_caps['subscriber-trial'] ) )
+		{
+			// also provide trialists who already have a subscription the ability to login with key
+			$all_caps['login_with_key'] = TRUE;
+		}//end elseif
 
 		// nothing else has set this as a subscriber, let's dig deeper
 		// @TODO: this doesn't really belong here, but it's the best place we have for now (10/24/2013)
@@ -1324,7 +1329,7 @@ class GO_Recurly
 		}
 
 		// billed, can send welcome email
-		go_subscriptions()->send_welcome_email( $user->ID, $meta_vals, TRUE ); // boolean means ticket user will be logged back in after generating welcome
+		go_subscriptions()->send_welcome_email( $user->ID, $meta_vals );
 
 		return TRUE;
 	} // END subscribe_free_period
