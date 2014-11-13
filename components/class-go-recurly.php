@@ -293,6 +293,11 @@ class GO_Recurly
 				$all_caps['login_with_key'] = TRUE;
 			}
 		}//end if
+		elseif ( ! empty( $all_caps['subscriber-trial'] ) )
+		{
+			// also provide trialists who already have a subscription the ability to login with key
+			$all_caps['login_with_key'] = TRUE;
+		}//end elseif
 
 		// nothing else has set this as a subscriber, let's dig deeper
 		// @TODO: this doesn't really belong here, but it's the best place we have for now (10/24/2013)
@@ -1316,12 +1321,14 @@ class GO_Recurly
 		}
 
 		// synchronize recurly data into usermeta
-		$ret = $this->admin()->recurly_sync( $user );
-
-		if ( ! $ret || is_wp_error( $ret ) )
+		$meta_vals = $this->admin()->recurly_sync( $user );
+		if ( ! $meta_vals || is_wp_error( $meta_vals ) )
 		{
-			return new WP_Error( 'go_recurly_freebies_subscribe_recurly_sync_error', 'failed to sync new user recurly account code to recurly when attempting to subscribe user ' . $user->user_email );
+			do_action( 'go_slog', 'go-recurly', 'failed to sync new user\'s recurly account code to recurly after subscribing freebie user' . $user->user_email );
 		}
+
+		// billed, can send welcome email
+		go_subscriptions()->send_welcome_email( $user->ID, $meta_vals );
 
 		return TRUE;
 	} // END subscribe_free_period
