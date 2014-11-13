@@ -69,6 +69,9 @@ class GO_Recurly_Freebies
 
 		$result = go_recurly()->subscribe_free_period( $user, $args['free_period'], $args['coupon_code'] );
 
+		// subscribe_free_period() now calls go_subscriptions()->send_welcome_email(), which calls wp_set_password().
+		// That clears the user's activation key we just generated
+		// - so we reset the key back into the user's record:
 		go_softlogin()->set_key( $user->ID, $user->user_activation_key );
 
 		if ( is_wp_error( $result ) )
